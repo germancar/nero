@@ -10,7 +10,7 @@ return [
     'build' => 'development',
 
     //database config
-    'db_hostname' => 'localhost',
+    'db_hostname' => '',
     'db_username' => '',
     'db_password' => '',
     'db_name'     => '',

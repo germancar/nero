@@ -4,7 +4,7 @@ namespace Nero\Core\Http;
 
 /*******************************************************************************
  * RedirectResponse implements the needed funcionality for redirecting the users
- * to different urls. It implements the send abstract method.
+ * to different urls. It implements the send method.
  *******************************************************************************/
 class RedirectResponse extends Response
 {
@@ -24,7 +24,7 @@ class RedirectResponse extends Response
 
 
     /**
-     * to, used to specify the redirect location
+     * Used to specify the redirect location
      *
      * @param string $location 
      * @return Nero\Core\Http\RedirectResponse
@@ -32,6 +32,21 @@ class RedirectResponse extends Response
     public function to($location)
     {
         $this->redirectPath = basePath() . $location;
+
+        return $this;
+    }
+
+
+    /**
+     * Redirect back to the same page
+     *
+     * @return $this
+     */
+    public function back()
+    {
+        $request = container('Request');
+
+        $this->redirectPath = basePath() . ltrim($request->getPathInfo(), '/');
 
         return $this;
     }

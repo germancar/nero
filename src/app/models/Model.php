@@ -6,16 +6,20 @@ use Nero\Core\Database\DB;
 use Nero\Core\Database\QB;
 
 /********************************************************
- * Simple Model base class, has a db connection handle.
- * Users will extend this base Model class and implement
- * their own methods for interfacing with the database.
- * Lets implement some kind of abstraction into the db
+ * Model base class, contains a db connection handle.
+ * It implements the active record pattern.
  ********************************************************/
 class Model
 {
+    /*
+     *  $db is a connection to the database singleton
+     *  $table represents table name that the model coresponds to
+     *  $attributes hold the columns from the database
+     */
     protected $db = null;
     protected $table;
-    protected $attributes = [];
+    public $attributes = [];
+
 
     /**
      * Constructor, init the db handle
@@ -24,7 +28,7 @@ class Model
      */
     public function __construct()
     {
-        //lets get the db handle
+        //lets get the db handle from the DB singleton
         $this->db = DB::getInstance();
 
         //lets parse the table name the default way, adding s at the end
@@ -40,7 +44,7 @@ class Model
      */
     public function __get($name)
     {
-        if(! in_array($name, array_keys($this->attributes)))
+        if(!in_array($name, array_keys($this->attributes)))
             return false;
 
         return $this->attributes[$name];
@@ -48,7 +52,7 @@ class Model
 
 
     /**
-     * Magic method for setting properties
+     * Magic method for setting attributes(properties)
      *
      * @param string $name 
      * @param mixed $value 
@@ -79,16 +83,7 @@ class Model
             return $instance->packResults($result);
         }
 
-
         throw new \Exception("Calling nonexistant method {$name}.");
-    }
-
-
-    //test method
-    public function testQB()
-    {
-        //return QB::table('users AS u, posts AS p')->select('u.username', 'u.email', 'p.title')->get();
-        return QB::table($this->table)->select('username','bio')->where('id', '=', 1)->get();
     }
 
 
@@ -119,9 +114,24 @@ class Model
     }
 
 
+    /**
+     * Create a new instance of the model and persist it in the db
+     *
+     * @param array $data 
+     * @return Model
+     */
+    public static function create(array $data)
+    {
+        $instance = static::fromArray($data);
+
+        $instance->save();
+
+        return $instance;
+    }
+
 
     /**
-     * Get all models
+     * Get all rows as an array
      *
      * @return array
      */
@@ -145,7 +155,7 @@ class Model
     {
         $instance = new static;
         
-        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->get();
+        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->get()[0];
 
         return $instance;
     }
@@ -161,7 +171,7 @@ class Model
     {
         $instance = new static;
         
-        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->get();
+        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->get()[0];
 
         if(empty($instance->attributes))
             throw new \Exception("Lookup for an id of {$id} on table {$instance->table} failed.");
@@ -205,7 +215,6 @@ class Model
     }
     
 
-
     /**
      * Implement the has many relationship
      *
@@ -247,18 +256,23 @@ class Model
      */
     public function save()
     {
-        if($this->id)
-            //we need to update the model in the db
+        $attributesToBePersisted = $this->persistableAttributes($this->attributes);
+
+        if($this->id){
+            //we need to update the model in the db(it contains the id, which means it already exists in the database)
             return QB::table($this->table)
-                     ->set($this->attributes)
+                     ->set($attributesToBePersisted)
                      ->where('id', '=', $this->id)
                      ->update();
+        }
         else{
-            //we need to insert into db, it is a new model
-            $lastInsertedId = QB::table($this->table)->insert($this->attributes);
+            //we need to insert a new record into the db(id is missing which means the model exist in memory only)
+            $lastInsertedId = QB::table($this->table)->insert($attributesToBePersisted);
             
+            //set the newly obtained id 
             $this->attributes['id'] = $lastInsertedId;
 
+            //return the id 
             return $lastInsertedId;
         }
     }
@@ -271,13 +285,13 @@ class Model
      */
     public function delete()
     {
-        if($this->id){
+        if(isset($this->id)){
             $result = QB::table($this->table)->where('id', '=', $this->id)->delete();
-
             $this->attributes = [];
-
             return $result;
-        } 
+        }
+
+        $this->attributes = [];
     }
 
 
@@ -359,6 +373,33 @@ class Model
         }
 
         return $packedResult;
+    }
+
+
+    /**
+     * Create an assoc array containing only the keys and values of the attributes which can be persisted in the db
+     *
+     * @param array $attributes 
+     * @return assoc array
+     */
+    private function persistableAttributes(array $attributes)
+    {
+        //if fillable property is set
+        if(isset($this->fillable) && !empty($this->fillable)){
+            //array to be populated
+            $result = [];
+
+            //loop through the attributes array and filter elements so that they correspond to the fillable property array
+            foreach($attributes as $key => $value){
+                if(in_array($key, $this->fillable))
+                    $result[$key] = $value;
+            }
+            return $result;
+        }
+
+        //fillable property is not set on the model, throw an exception to indicate error
+        $modelName = get_class($this);
+        throw new \Exception("Fillable properties not set on the model {$modelName}");
     }
 
 

@@ -22,10 +22,14 @@ class Auth
         //hash the password
         $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
 
-        //we dont need password confirmation
-        unset($data['password_confirmation');
+        //lets create the instance of the model which contains the data 
+        $model = $this->createModelFromData($data);
 
-        return QB::table($authTable)->insert($data);
+        //lets clean up the old input from the form
+        container('Session')->destroyOldInput();
+
+        //persist the model
+        return $model->save();
     }
 
 
@@ -47,8 +51,13 @@ class Auth
 
         //check password
         if($queryResult){
-            if(password_verify($password, $queryResult['password'])){
-                container('Session')->set("user", $queryResult);;
+            if(password_verify($password, $queryResult[0]['password'])){
+                //set the session
+                container('Session')->set("user_id", $queryResult[0]['id']);
+
+                //clean up the old input from the form
+                container('Session')->destroyOldInput();
+
                 return true;
             }
         }
@@ -74,12 +83,10 @@ class Auth
      */
     public function check()
     {
-        $session = container('Session');
-
-        if($session->get('user'))
+        if(container('Session')->get('user_id'))
             return true;
-        else
-            return false;
+
+        return false;
     }
 
 
@@ -90,11 +97,12 @@ class Auth
      */
     public function user()
     {
-        $session = container('Session');
-        
-        if($userData = $session->get('user')){
-            $model = $this->createModel($userData);
-            return $model;
+        if($userID = container('Session')->get('user_id')){
+            //create the model from the id thats stored in the session
+            $modelName = ucfirst(config('auth_return_model'));
+            $fullModelName = "Nero\App\Models\\$modelName";
+
+            return $fullModelName::find($userID);
         }
 
         return false;
@@ -107,7 +115,7 @@ class Auth
      * @param array $queryResult 
      * @return Model
      */
-    private function createModel(array $data)
+    private function createModelFromData(array $data)
     {
         $modelName = ucfirst(config('auth_return_model'));
 

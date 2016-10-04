@@ -32,6 +32,28 @@ class Response
         return $this;
     }
 
+    
+    /**
+     * Add old input to the session
+     *
+     * @param array $data 
+     * @return $this
+     */
+    public function withOld(array $data)
+    {
+        $session = container('Session');
+
+        //lets clear the old input
+        $session->destroyOldInput();
+        
+        //lets populate the old input
+        foreach($data as $key => $value){
+            $session->setOldInput($key, $value);
+        }
+
+        return $this;
+    }
+
 
     /**
      * Just return the message to the user, subclasses will implement this method

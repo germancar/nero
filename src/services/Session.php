@@ -71,13 +71,24 @@ class Session
         unset($_SESSION['flash']);
     }
 
-    
+
+    /**
+     * Add a new error to the session
+     *
+     * @param mixed $value 
+     * @return void
+     */
     public function error($value)
     {
         $_SESSION['errors'][] = $value;
     }
 
 
+    /**
+     * Get all errors from the session
+     *
+     * @return mixed
+     */
     public function getErrors()
     {
         if(isset($_SESSION['errors']))
@@ -87,10 +98,52 @@ class Session
     }
 
 
+    /**
+     * Destroy errors
+     *
+     * @return void
+     */
     public function destroyErrors()
     {
         unset($_SESSION['errors']);
     }
 
 
+    /**
+     * Set old input
+     *
+     * @param string $key 
+     * @param string $value 
+     * @return void
+     */
+    public function setOldInput($key, $value)
+    {
+        $_SESSION['old'][$key] = $value;
+    }
+
+
+    /**
+     * Get the old value
+     *
+     * @param string $key 
+     * @return string
+     */
+    public function old($key)
+    {
+        if(isset($_SESSION['old'][$key]))
+            return $_SESSION['old'][$key];
+
+        return "";
+    }
+
+
+    /**
+     * Destroy the old input from the session
+     *
+     * @return void
+     */
+    public function destroyOldInput()
+    {
+        unset($_SESSION['old']);
+    }
 }

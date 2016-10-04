@@ -12,7 +12,6 @@ use Nero\Core\Http\ViewResponse;
  */
 function basePath()
 {
-    //$config = require __DIR__ . "/../config/conf.php";
     return config('base_path');
 }
 
@@ -204,6 +203,25 @@ function flash($name, $value = "")
 }
 
 
+/**
+ * Check if there are any errors
+ *
+ * @return bool
+ */
+function hasErrors()
+{
+    if(container('Session')->getErrors())
+        return true;
+
+    return false;
+}
+
+
+/**
+ * Get all the errors from the session
+ *
+ * @return array
+ */
 function errors()
 {
     $session = container('Session');
@@ -219,12 +237,36 @@ function errors()
 }
 
 
+/**
+ * Set a new error to the session
+ *
+ * @param mixed $value 
+ * @return void
+ */
 function error($value)
 {
     container('Session')->error($value);
 }
 
 
+/**
+ * Get the old input for based on key
+ *
+ * @param string $key 
+ * @return string
+ */
+function old($key)
+{
+    return container('Session')->old($key);
+}
+
+
+/**
+ * Pack model instances into an array
+ *
+ * @param array $models
+ * @return array
+ */
 function modelsToArray(array $models)
 {
     $data = [];
@@ -235,3 +277,17 @@ function modelsToArray(array $models)
     return $data;
 }
 
+
+/**
+ * Helper function for printing out variables
+ *
+ * @param mixed $variable 
+ * @return void
+ */
+function inspect($variable)
+{
+    if(is_array($variable))
+        print_r($variable);
+    else
+        var_dump($variable);
+}
