@@ -1,7 +1,8 @@
-<?php namespace Nero\Interfaces;
+<?php
+
+namespace Nero\Interfaces;
 
 use Symfony\Component\HttpFoundation\Request;
-
 
 /**************************************************************
  * Interface for routing the url to controllers and methods.
