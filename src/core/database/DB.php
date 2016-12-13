@@ -1,9 +1,10 @@
 <?php namespace Nero\Core\Database;
 
-/******************************************************
- * DB singleton class, manages the connection to db,
- * and provides basic db query functionality.
- *****************************************************/
+
+/*************************************************************
+ * Database(DB) singleton class, manages the connection to db.
+ * Provides basic querying functionality, built on top of PDO.
+ ************************************************************/
 class DB
 {
     private static $instance = null;
@@ -12,7 +13,7 @@ class DB
     
 
     /**
-     * Get the db instance
+     * Get the instance
      *
      * @return DB
      */
@@ -35,39 +36,37 @@ class DB
      */
     public function query($sql, array $arguments = [])
     {
-        try{
-            $stmt = $this->pdo->prepare($sql);
+	//prepare statement
+        $stmt = $this->pdo->prepare($sql);
 
-            if($stmt->execute($arguments)){
-                if(stringStartsWith('INSERT', $sql))
-                    $this->result = $this->pdo->lastInsertId();
-                else if(stringStartsWith('UPDATE', $sql) || stringStartsWith('DELETE', $sql))
-                    $this->result = true;
-                else
-                    //we have results to fetch
-                    $this->result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
-            }
+	//execute statement
+        if($stmt->execute($arguments)){
+            if(stringStartsWith('INSERT', $sql))
+		//insert operation, return inserted id
+                $this->result = $this->pdo->lastInsertId();
+            else if(stringStartsWith('UPDATE', $sql) || stringStartsWith('DELETE', $sql))
+	    //update or delete, return true to indicate success
+            $this->result = true;
             else
-                $this->result = false;
-
-
-            return $this->result;
+                //we have results to fetch
+                $this->result = $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
-        catch(\PDOException $e){
-            echo 'Database error. ' . $e->getMessage();
-        }
+        else
+	    //statement not executed successfully, false to indicate error
+            $this->result = false;
+
+	//return result of the query
+        return $this->result;
     }
 
 
     /**
-     * Return the results of the query
+     * Return the results of the last executed query
      *
      * @return mixed
      */
     private function getResults()
     {
-        //if(count($this->result) == 1 && is_array($this->result))
-        //  return $this->result[0];
         return $this->result;
     }
 

@@ -1,8 +1,10 @@
-<?php
-
-namespace Nero\Core\Routing;
+<?php namespace Nero\Core\Routing;
 
 
+/**
+ * Router class, used for grouping info about the registered routes in our app
+ *
+ */
 class Route
 {
     public $method;

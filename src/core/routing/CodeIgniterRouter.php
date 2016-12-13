@@ -1,6 +1,4 @@
-<?php
-
-namespace Nero\Core\Routing;
+<?php namespace Nero\Core\Routing;
 
 use Symfony\Component\HttpFoundation\Request;
 
@@ -9,7 +7,7 @@ use Symfony\Component\HttpFoundation\Request;
  * Route method returns an assoc array containing information needed
  * to call the right method on the right controller.
  ********************************************************************/
-class BasicRouter implements RouterInterface
+class CodeIgniterRouter implements RouterInterface
 {
     /**
      * Process the requested url and return route info as assoc array

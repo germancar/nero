@@ -85,9 +85,9 @@ function javascript($path)
  *
  * @return Nero\Core\Http\ViewResponse
  */
-function view()
+function view($template = "", $data = [])
 {
-    return new ViewResponse;
+    return new ViewResponse($template, $data);
 }
 
 
@@ -290,4 +290,17 @@ function inspect($variable)
         print_r($variable);
     else
         var_dump($variable);
+}
+
+
+/**
+ * Extract the name of the class without the namespace
+ *
+ * @param string $class
+ * @return string
+ */
+function nonNamespacedClassName($class)
+{
+    $parts = explode('\\',$class);
+    return $parts[count($parts) - 1];
 }

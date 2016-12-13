@@ -9,7 +9,17 @@ namespace Nero\Core\Http;
  ********************************************************************/
 class ViewResponse extends Response
 {
+    private $template = null;
     private $views = [];
+
+
+    public function __construct($templateName = "", $data = [])
+    {
+	//setup the template 
+	$this->template = new \stdClass;
+	$this->template->name = $templateName;
+	$this->template->data = $data;
+    }
 
 
     /**
@@ -29,18 +39,35 @@ class ViewResponse extends Response
     }
 
 
+    public function with(array $data)
+    {
+	//just set the template data
+	$this->template->data = $data;
+
+	return $this;
+    }
+
+
     /**
      * Send the response back to the user
      *
      */
     public function send()
     {
-        //lets process the views if any are queued for rendering
         if(!empty($this->views)){
+            //lets process the views(plain PHP files) if any are queued for rendering
             foreach($this->views as $view){
-                $this->renderView($view['name'], $view['data']);
+                $this->renderPHPfile($view['name'], $view['data']);
             }
         }
+	else{
+	    //get the data
+	    $template = $this->template->name . '.twig';
+	    $data = $this->template->data;
+
+	    //echo the template
+	    echo container('Twig')->render($template, $data);
+	}
     }
 
 
@@ -51,7 +78,7 @@ class ViewResponse extends Response
      * @param array $data
      * @return void
      */
-    private function renderView($view, $data = [])
+    private function renderPHPfile($view, $data = [])
     {
         //lets extract the array keys into variables which can be used in the view
         extract($data);

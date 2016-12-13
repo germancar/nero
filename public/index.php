@@ -43,15 +43,10 @@ try {
     $app->terminate();
 }
 catch(\Exception $e){
-    if($e->getCode() == 404)
-        //show the http 404 page not found view
-        require "../src/app/views/nero/http404.php";
-    else{
-        //lets work on the formating of the errors
-        $data['exception'] = $e;
-        extract($data);
-        require "../src/app/views/nero/error.php";
-    }
+    $data['exception'] = $e;
+    $data['exception_name'] = get_class($e);
+    extract($data);
+    require "../src/app/views/nero/error.php";	
 }
 
 

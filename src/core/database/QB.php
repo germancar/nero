@@ -1,6 +1,4 @@
-<?php
-
-namespace Nero\Core\Database;
+<?php namespace Nero\Core\Database;
 
 use Nero\Core\Database\DB;
 

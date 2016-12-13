@@ -1,16 +1,20 @@
-<?php
+<?php namespace Nero\Core\Reflection;
 
-namespace Nero\Core\Reflection;
 
-//should document class
+/**
+ * Resolver class, used for invoking methods on objects.
+ * It uses the reflection API to inject the methods with 
+ * url parameters or type hinted class parameteres which are
+ * resolved from the IoC container.
+ */
 class Resolver
 {
-    private $targetName;
+    private $target;
     private $reflectionMethod;
 
 
     /**
-     * Constructor, inject with target and method
+     * Constructor, inject with target class and method
      *
      * @param string $target 
      * @param string $method 
@@ -18,9 +22,32 @@ class Resolver
      */
     public function __construct($target, $method)
     {
-        $this->targetName = $target;
-
+        $this->target = $target;
         $this->reflectionMethod = new \ReflectionMethod($target, $method);
+    }
+
+
+    /**
+     * Invoke the requested method with supplied non class parameters and class type hinted parameters 
+     *
+     * @param array $args
+     * @return mixed
+     */
+    public function invoke(array $args = [])
+    {
+	//instantiate the object on which the method needs to be invoked
+        $object = new $this->target;
+
+	//check for errors
+	if(count($args) != $this->nonClassParameterCount())
+	    throw new \Exception("Expected parameters mismatch");
+
+	//merge the route(url) parameters and class type hinted parameters
+	$classParameters = $this->resolveObjectsFromContainer();
+	$mergedParameters = array_merge($args, $classParameters);
+        
+	//invoke the method on the target and return response
+        return $this->reflectionMethod->invokeArgs($object, $mergedParameters);
     }
 
 
@@ -29,7 +56,7 @@ class Resolver
      *
      * @return int
      */
-    public function nonClassParameterCount()
+    private function nonClassParameterCount()
     {
         $expectedParameters = $this->reflectionMethod->getParameters();
         
@@ -48,7 +75,7 @@ class Resolver
      *
      * @return array
      */
-    public function resolveClassParameters()
+    private function resolveObjectsFromContainer()
     {
         $objects = [];
 
@@ -58,7 +85,7 @@ class Resolver
         foreach($expectedParameters as $parameter){
             if($parameter->getClass()){
                 //extract the class name
-                $className = $this->extractClassName($parameter->getClass()->name);
+                $className = nonNamespacedClassName($parameter->getClass()->name);
 
                 //resolve it from the container
                 if(container($className))
@@ -71,55 +98,4 @@ class Resolver
         return $objects;
     }
 
-
-
-    /**
-     * Resolve the dependencies and invoke the method
-     *
-     * @return mixed
-     */
-    public function resolveInvoke()
-    {
-        $resolvedObjects = $this->resolveClassParameters();
-
-        return $this->invoke($resolvedObjects);
-    }
-
-
-    /**
-     * Invoke the method and return its results
-     *
-     * @param array $parameters 
-     * @return mixed
-     */
-    public function invoke(array $parameters = [])
-    {
-        $object = null;
-
-        //lets create the target object and invoke its method
-        if(class_exists($this->targetName))
-            $object = new $this->targetName;
-        else{
-            if(inDevelopment())
-                throw new \Exception("Controller '$controllerName' does not exist.");
-            else
-                throw new \Exception("404", 404);
-        }
-
-        
-        return $this->reflectionMethod->invokeArgs($object, $parameters);
-    }
-
-
-    /**
-     * Utility for extracting class name only, non namespaced
-     *
-     * @param string $fullClassName 
-     * @return string
-     */
-    private function extractClassName($fullClassName)
-    {
-        $parts = explode('\\',$fullClassName);
-        return $parts[count($parts) - 1];
-    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-use Nero\Core\Routing\Router;
+use Nero\Core\Routing\LaravelRouter as Router;
 
 /*****************************************************************************
  * This is where you register the routes that you want to respond to.
@@ -14,6 +14,7 @@ Router::register('get', '/redirect', 'IntroController@redirect');
 Router::register('get', '/text', 'IntroController@text');
 
 
-//dev
-Router::register('get', '/index', 'DevController@index');
-Router::register('get', '/show', 'DevController@show');
+//development routes
+Router::register('get', '/dev', 'DevController@dev');
+Router::register('get', '/dev/{id}', 'DevController@id')->filters('TestFilter');
+Router::register('get', '/op', 'DvController@dev');

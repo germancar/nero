@@ -1,12 +1,17 @@
-<?php
+<?php namespace Nero\Services;
 
-namespace Nero\Services;
+
 
 use Session;
 use Nero\Core\Database\QB;
+use Nero\Interfaces\AuthInterface;
 
 
-class Auth
+/**
+ * Auth service used for registering and loggin in of the users
+ *
+ */
+class Auth implements AuthInterface
 {
     /**
      * Register a new user
@@ -91,18 +96,16 @@ class Auth
 
 
     /**
-     * Return the user in the form of a model
+     * Return the currently logged in user model
      *
      * @return Model
      */
     public function user()
     {
         if($userID = container('Session')->get('user_id')){
-            //create the model from the id thats stored in the session
-            $modelName = ucfirst(config('auth_return_model'));
-            $fullModelName = "Nero\App\Models\\$modelName";
+	    $model = $this->namespacedAuthModel();
 
-            return $fullModelName::find($userID);
+            return $model::find($userID);
         }
 
         return false;
@@ -117,15 +120,26 @@ class Auth
      */
     private function createModelFromData(array $data)
     {
+	$model = $this->namespacedAuthModel();
+
+        if(!class_exists($model))
+            throw new \Exception("Model $model does not exist.");
+
+
+        return $model::fromArray($data);
+    }
+
+
+    /**
+     * Get the full namespaced model name from the auth config
+     *
+     * @return string
+     */
+    private function namespacedAuthModel()
+    {
         $modelName = ucfirst(config('auth_return_model'));
 
-        $fullModelName = "Nero\App\Models\\$modelName";
-
-        if(! class_exists($fullModelName))
-            throw new \Exception("Model $fullModelName does not exist.");
-
-
-        return $fullModelName::fromArray($data);
+        return "Nero\App\Models\\$modelName";
     }
 
 }

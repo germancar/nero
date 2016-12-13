@@ -10,12 +10,12 @@ return [
     'build' => 'development',
 
     //database config
-    'db_hostname' => '',
-    'db_username' => '',
-    'db_password' => '',
-    'db_name'     => '',
+    'db_hostname' => 'localhost',
+    'db_username' => 'root',
+    'db_password' => 'street27',
+    'db_name'     => 'dev',
 
-    //default route config(used with Basic Router)
+    //default route config(used with CodeIgniterRouter)
     'default_controller' => 'Welcome',
     'default_method'     => 'index',
 

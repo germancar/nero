@@ -1,28 +1,27 @@
-<?php
+<?php namespace Nero\App\Models;
 
-namespace Nero\App\Models;
 
 use Nero\Core\Database\DB;
 use Nero\Core\Database\QB;
 
-/********************************************************
- * Model base class, contains a db connection handle.
- * It implements the active record pattern.
- ********************************************************/
+
+/************************************************************
+ * Model base class, implementation of active record pattern.
+ ************************************************************/
 class Model
 {
-    /*
+    /**
      *  $db is a connection to the database singleton
      *  $table represents table name that the model coresponds to
      *  $attributes hold the columns from the database
      */
     protected $db = null;
     protected $table;
-    public $attributes = [];
+    protected $attributes = [];
 
 
     /**
-     * Constructor, init the db handle
+     * Constructor, init the db handle and table name
      *
      * @return void
      */
@@ -31,8 +30,9 @@ class Model
         //lets get the db handle from the DB singleton
         $this->db = DB::getInstance();
 
-        //lets parse the table name the default way, adding s at the end
-        $this->table = strtolower($this->extractModelName(get_class($this)) . 's');
+        //if the table name is not explicitly set, lets parse the table name the default way - lowercase and adding 's' at the end
+	if(!isset($this->table))
+            $this->table = strtolower(nonNamespacedClassName(get_class($this)) . 's');
     }
 
 
@@ -65,7 +65,22 @@ class Model
 
 
     /**
-     * Implement dynamic methods for querying the db
+     * Magic method for checking if the property is set
+     *
+     * @param string $name
+     * @return bool
+     */
+    public function __isset($name)
+    {
+        if(in_array($name, array_keys($this->attributes)))
+            return true;
+
+	return false;
+    }
+
+
+    /**
+     * Implement dynamic method for querying the database
      *
      * @param string $name
      * @param array $arguments        
@@ -84,6 +99,29 @@ class Model
         }
 
         throw new \Exception("Calling nonexistant method {$name}.");
+    }
+
+
+    /**
+     * Used for setting custom table names
+     *
+     * @param string $table 
+     * @return void
+     */
+    public function setTable($table)
+    {
+        $this->table = $table;
+    }
+
+
+    /**
+     * Return the model table name
+     *
+     * @return string
+     */
+    public function getTable()
+    {
+        return $this->table;
     }
 
 
@@ -115,7 +153,7 @@ class Model
 
 
     /**
-     * Create a new instance of the model and persist it in the db
+     * Create a new instance of the model and persist it in the database
      *
      * @param array $data 
      * @return Model
@@ -131,7 +169,7 @@ class Model
 
 
     /**
-     * Get all rows as an array
+     * Get all database rows as an array
      *
      * @return array
      */
@@ -199,66 +237,80 @@ class Model
 
 
     /**
-     * Implement the has one relationship
+     * Implements has one relationship
      *
-     * @param string $tableName 
-     * @param string $foreignKey 
-     * @return type
+     * @param string $model
+     * @param string $foreignKey
+     * @param string $tableName
+     * @return Model
      */
-    public function hasOne($tableName, $foreignKey = "")
+    public function hasOne($model, $foreignKey = "", $tableName = "")
     {
-        $foreignKey = $this->createForeignKey($foreignKey);
+	//collect the info needed for the query
+        $foreignKey = $this->hasForeignKey($foreignKey);
+	$tableName = ($tableName == "") ? nonNamespacedClassName($model) : $tableName;
 
-        $queryResult = QB::table($tableName)->where($foreignKey, '=', $this->id)->get();
+        $queryResult = QB::table($tableName)->where($foreignKey, '=', $this->id)->limit(1)->get();
 
-        return $this->packResults($queryResult);
+        return $this->packResults($queryResult, $model);
     }
-    
+
 
     /**
-     * Implement the has many relationship
+     * Implements the has many relationship
      *
+     * @param string $model 
+     * @param string $foreignKey 
      * @param string $tableName 
-     * @param string $idColumn 
      * @return array
      */
-    public function hasMany($tableName, $foreignKey = "")
+    public function hasMany($model, $foreignKey = "", $tableName = "")
     {
-        $foreignKey = $this->createHasManyForeignKey($foreignKey);
-        
+	//collect the info needed for the query
+	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
+        $foreignKey = $this->hasForeignKey($foreignKey);
+
+	//query the db
         $queryResult = QB::table($tableName)->where($foreignKey, '=', $this->id)->get();
 
-        return $this->packResults($queryResult);
+	//return array of requested models
+        return $this->packResults($queryResult, $model);
     }
 
 
     /**
      * Implements the belongs to relationship
      *
-     * @param string $tablename 
+     * @param string $model
      * @param string $foreignKey 
+     * @param string $tableName 
      * @return array
      */
-    public function belongsTo($tableName, $foreignKey = "")
+    public function belongsTo($model, $foreignKey = "", $tableName = "")
     {
-        $foreignKey = $this->createBelongsToForeignKey($foreignKey, $tableName);
+	//collect the info needed for the query
+	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
+        $foreignKey = $this->belongsForeignKey($foreignKey, $tableName);
 
-        $queryResult = QB::table($tableName)->where('id', '=', $this->{$foreignKey})->get();
+	//query the db 
+        $queryResult = QB::table($tableName)->where('id', '=', $this->{$foreignKey})->limit(1)->get();
 
-        return $this->packResults($queryResult);
+	//return singular instance of the requested model
+        return $this->packResults($queryResult, $model)[0];
     }
 
 
     /**
-     * Implement saving of a model to a db row
+     * Implement saving of a model to a database
      *
      * @return bool
      */
     public function save()
     {
+	//create the array consisting of the attributes which can be saved in the database
         $attributesToBePersisted = $this->persistableAttributes($this->attributes);
 
-        if($this->id){
+        if($this->id){//TODO primary key?
             //we need to update the model in the db(it contains the id, which means it already exists in the database)
             return QB::table($this->table)
                      ->set($attributesToBePersisted)
@@ -286,64 +338,44 @@ class Model
     public function delete()
     {
         if(isset($this->id)){
+	    //if the row exist in the db delete it and return the result of the query
             $result = QB::table($this->table)->where('id', '=', $this->id)->delete();
             $this->attributes = [];
             return $result;
         }
 
+	//else just delete the in memory data and return true to indicate success
         $this->attributes = [];
-    }
-
-
-    /**
-     * Used for setting custom table names
-     *
-     * @param string $table 
-     * @return void
-     */
-    public function setTable($table)
-    {
-        $this->table = $table;
-    }
-
-
-    /**
-     * Return the model table name
-     *
-     * @return string
-     */
-    public function getTableName()
-    {
-        return $this->table;
+	return true;
     }
 
  
     /**
-     * Extract the model name only,without namespace
-     *
-     * @param string $fullModelName 
+     * Extract the default table name from the model class.
+     * Just return lowercase with appended 's' at the end.
+     * 
+     * @param string @model
      * @return string
-     */
-    private function extractModelName($fullModelName)
+     */ 
+    private function extractDefaultTableName($model)
     {
-        $exploded = explode('\\', $fullModelName);
-
-        return $exploded[count($exploded) - 1];
+	return strtolower(nonNamespacedClassName($model) . 's');
     }
 
 
     /**
-     * Utility for parsing the query results into model response
+     * Pack results of a query into array or single model instance
      *
      * @param array $queryResult 
      * @return mixed
      */
-    private function packResults($queryResult)
+    protected function packResults($queryResult, $model = "")//TODO
     {
         if($queryResult){
             if(isMultidimensional($queryResult))
-                return $this->packModelsIntoArray($queryResult);
+                return $this->packModelsIntoArray($queryResult, $model);
             else{
+		//TODO
                 //we have a single assoc array, convert it to model and return it
                 $this->attributes = $queryResult[0];
                 return $this;
@@ -361,14 +393,21 @@ class Model
      * @param array $queryResult 
      * @return array of models
      */
-    private function packModelsIntoArray($queryResult)
+    private function packModelsIntoArray($queryResult, $modelName = "")
     {
         $packedResult = [];
 
         foreach($queryResult as $result){
-            $model = new static;
+	    //create the instance of the requested model
+	    if($modelName == "")
+		$model = new static;
+	    else
+		$model = new $modelName;
+
+	    //setup data
             $model->attributes = $result;
 
+	    //add the instance to array
             $packedResult[] = $model;
         }
 
@@ -377,14 +416,14 @@ class Model
 
 
     /**
-     * Create an assoc array containing only the keys and values of the attributes which can be persisted in the db
+     * Create an assoc array containing only the keys and values of the attributes which can be persisted in the database
      *
      * @param array $attributes 
      * @return assoc array
      */
     private function persistableAttributes(array $attributes)
     {
-        //if fillable property is set
+        //if fillable property is set do the filtering
         if(isset($this->fillable) && !empty($this->fillable)){
             //array to be populated
             $result = [];
@@ -394,6 +433,7 @@ class Model
                 if(in_array($key, $this->fillable))
                     $result[$key] = $value;
             }
+	    
             return $result;
         }
 
@@ -409,29 +449,31 @@ class Model
      * @param string $foreignKey 
      * @return string
      */
-    private function createHasManyForeignKey($foreignKey)
-    {
-        if($foreignKey == ""){
-            $modelName = $this->extractModelName(get_class($this));
+    private function hasForeignKey($foreignKey)  
+    {       
+	if($foreignKey == ""){
+	    //default foreign key generation, "model"_id
+            $modelName = nonNamespacedClassName(get_class($this));
             return strtolower($modelName) . "_id";
         }
         else
+	    //return the user supplied explicit foreign key, no need for processing
             return $foreignKey;
     }
 
 
     /**
-     * Create a foreign key to be used in belongs to relationships queries
+     * Create a foreign key to be used in belongs to relationship queries
      *
      * @param string $foreignKey 
      * @param string $tableName 
-     * @return string
+     * @return string 
      */
-    private function createBelongsToForeignKey($foreignKey, $tableName)
+    private function belongsForeignKey($foreignKey, $tableName)
     {
-        if($foreignKey == ""){
+        if($foreignKey == "")
+	    //default foreign key generation, ("tableName" - 's')_id
             return rtrim(strtolower($tableName), 's') . "_id";
-        }
         else
             return $foreignKey;
     }

@@ -2,6 +2,7 @@
 
 namespace Nero\Core\Routing;
 
+use Nero\Interfaces\RouterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
@@ -15,9 +16,11 @@ use Symfony\Component\HttpFoundation\Request;
  * requested url and if there is a match that route is parsed into
  * the router response(which is used by the dispatcher)... 
  ********************************************************************/
-class Router implements RouterInterface
+class LaravelRouter implements RouterInterface
 {
+    //hold all registered routes
     private static $routes = [];
+
 
     /**
      * Register a route that you want to respond to in your app
@@ -41,6 +44,14 @@ class Router implements RouterInterface
 
         //return route to allow adding of request filters to the route
         return $route;
+    }
+
+    public static function hasRoutes()
+    {
+	if(empty(static::$routes))
+	    return false;
+
+	return true;
     }
 
 
@@ -108,10 +119,7 @@ class Router implements RouterInterface
         }
 
         //if there was no match throw a 404 not found exception(user haven't registered that route)
-        if(inDevelopment())
-            throw new \Exception("Route not matched");
-        else
-            throw new \Exception("404", 404);
+        throw new \Nero\Exceptions\HttpNotFoundException("Route not matched", 404);
     }
 
 

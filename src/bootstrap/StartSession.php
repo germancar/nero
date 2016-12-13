@@ -1,17 +1,15 @@
-<?php
+<?php namespace Nero\Bootstrap;
 
-namespace Nero\Bootstrap;
 
 
 class StartSession
 {
     /**
-     * Bootup method
+     * Boot method
      *
-     * @param Container $container 
      * @return void
      */
-    public function boot($container)
+    public function boot()
     {
         session_start();
     }

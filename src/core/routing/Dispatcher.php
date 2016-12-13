@@ -1,9 +1,9 @@
-<?php
-
-namespace Nero\Core\Routing;
+<?php namespace Nero\Core\Routing;
 
 
 use Nero\Core\Reflection\Resolver;
+use Nero\Interfaces\DispatcherInterface;
+
 
 /***************************************************************************
  * Dispatcher is responsible for dispatching the route
@@ -17,10 +17,10 @@ use Nero\Core\Reflection\Resolver;
  * in the method, followed by the class type ones which are resolved from
  * the IoC container.
  ****************************************************************************/
-class Dispatcher
+class Dispatcher implements DispatcherInterface
 {
-    private $resolver = null;
     private $method = "";
+    private $resolver = null;
     private $urlParameters = [];
 
 
@@ -30,7 +30,7 @@ class Dispatcher
      * @param assoc array $route 
      * @return Nero\Core\Http\Response
      */
-    public function dispatchRoute($route)
+    public function dispatchRoute(array $route)
     {
         //contains the full name of the controller to be used by the reflection api
         $controllerName = "Nero\\App\\Controllers\\". ucfirst($route['controller']);
@@ -44,11 +44,8 @@ class Dispatcher
         //lets create the resolver which will do all the reflection work for us
         $this->resolver = new Resolver($controllerName, $this->method);
 
-        //throw 404 exception if there is a mismatch between expected url parameters and supplied parameters
-        $this->checkForParameterCountMismatch();
-
-        //finaly lets invoke the method with the all the parameters and get the response
-        $response = $this->invokeMethod();
+	//invoke the method on the controller
+	$response = $this->resolver->invoke($this->urlParameters);
 
         //if its a simple string, wrap it into the response class
         if(is_string($response))
@@ -56,41 +53,5 @@ class Dispatcher
 
 
         return $response;
-    }
-
-
-    /**
-     * Merge the final parameter array and invoke the method with it
-     *
-     * @return mixed
-     */
-    private function invokeMethod()
-    {
-        //lets resolve class parameters and create the final array of parameters(containing url and class parameters)
-        $resolvedObjects = $this->resolver->resolveClassParameters();
-
-        //merge url and class parameters
-        $parameters = array_merge($this->urlParameters, $resolvedObjects);
-
-        //lets finally invoke the method and return its response
-        return $this->resolver->invoke($parameters);
-    }
-
-
-    /**
-     * Throw exception if there is a url parameter mismatch
-     *
-     * @return void
-     */
-    private function checkForParameterCountMismatch()
-    {
-        $nonClassParameterCount = $this->resolver->nonClassParameterCount();
-
-        if(count($this->urlParameters) != $nonClassParameterCount){
-            if(inDevelopment())
-                throw new \Exception("Expected parameters mismatch.");
-            else
-                throw new \Exception("404", 404);
-        }
     }
 }

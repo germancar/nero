@@ -1,11 +1,8 @@
-<?php
+<?php namespace Nero\Core;
 
-namespace Nero\Core;
-
-
-use Pimple\Container;
 use Nero\Core\Reflection\Resolver;
-use Nero\Core\Routing\RouterInterface;
+use Nero\Interfaces\RouterInterface;
+use Nero\Interfaces\DispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
@@ -17,6 +14,10 @@ use Symfony\Component\HttpFoundation\Request;
  ***********************************************************************************/
 class App
 {
+    /**
+     * RouterInterface implementation
+     * DispatcherInterface implementation
+     */
     private $router = null;
     private $container = null;
     private $dispatcher = null;
@@ -25,7 +26,7 @@ class App
     /**
      * Array of bootstrapers to be booted up before we handle a request
      */
-    private $bootsrapers = [
+    private $bootstrappers = [
         'Nero\Bootstrap\StartSession',
     ];
 
@@ -40,18 +41,18 @@ class App
 
 
     /**
-     * Constructor, injected with router implementation and IoC container
+     * Constructor, injected with router and dispatcher  implementation
      *
-     * @param IRouter $router 
-     * @param Pimple\Container $container
+     * @param RouterInterface $router 
+     * @param DispatcherInterface $dispatcher
      */
-    public function __construct(RouterInterface $router)
+    public function __construct(RouterInterface $router, DispatcherInterface $dispatcher)
     {
-        //setup the app
+        //setup the dependencies
         $this->router = $router;
-        $this->dispatcher = container('Dispatcher');
+        $this->dispatcher = $dispatcher;
 
-        //lets run bootstrapers
+        //lets run bootstrappers
         $this->bootstrap();
     }
     
@@ -76,7 +77,7 @@ class App
         //pass the route to the dispatcher for invoking the controller and constructing the response
         $response = $this->dispatcher->dispatchRoute($route);
 
-        //lets return the response we got
+        //lets return the response we got back
         return $response;
     }
 
@@ -94,7 +95,7 @@ class App
 
             $resolver = new Resolver($filterName, 'handle');
 
-            $result = $resolver->resolveInvoke();
+            $result = $resolver->invoke();
             
             if(is_subclass_of($result, "Nero\\Core\\Http\Response"))
                 return $result;
@@ -111,9 +112,9 @@ class App
      */
     private function bootstrap()
     {
-        foreach($this->bootsrapers as $bootstraper){
-            $instance = new $bootstraper;
-            $instance->boot($this->container);
+        foreach($this->bootstrappers as $bootstrapper){
+	    $resolver = new Resolver($bootstrapper, 'boot');
+	    $resolver->invoke();
         }
     }
 

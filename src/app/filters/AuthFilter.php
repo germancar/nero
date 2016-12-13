@@ -1,6 +1,5 @@
-<?php
+<?php namespace Nero\App\Filters;
 
-namespace Nero\App\Filters;
 
 use Nero\Services\Auth;
 
