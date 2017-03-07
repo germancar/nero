@@ -2,17 +2,26 @@
 
 namespace Nero\Core\Http;
 
-
-/*******************************************************
- * Simple Response class encapsulates working with
- * responses that we are sending to the user.
- * You can add a view to be rendered with data,
- * redirect the user or send a json response for APIs.
- *******************************************************/
+/**
+ * Abstract http response class, used for returning a response to the user.
+ *
+ */
 class Response
 {
+    /**
+     * Simple message to be returned
+     *
+     * @var string
+     */
     private $message;
     
+
+    /**
+     * Constructo
+     *
+     * @param string $message
+     * @return void
+     */
     public function __construct($message = "")
     {
         $this->message = $message;

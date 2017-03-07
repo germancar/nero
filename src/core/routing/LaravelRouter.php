@@ -6,36 +6,37 @@ use Nero\Interfaces\RouterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-/********************************************************************
+/**
  * Router inspired by the Laravel routing implementation.
  * You register your routes in a separate file and the router
  * does the loading and parsing of it for use by the dispatcher.
- * This is done by assigning to every route a regEx that is used
+ * This is done by assigning to every route a regular expression
  * to capture segments of the url to be used as arguments for
  * controller method. Each route regEx is matched against a
  * requested url and if there is a match that route is parsed into
- * the router response(which is used by the dispatcher)... 
- ********************************************************************/
+ * the router response(which is used by the dispatcher).
+ */
 class LaravelRouter implements RouterInterface
 {
     /**
-     * @var Holds all registered routes
+     * Holds all registered routes.
      *
+     * @var array
      */
     private $routes = [];
 
 
     /**
-     * Register a route that you want to respond to in your app
+     * Register a route that you want to respond to in your app.
      *
      * @param string $method 
      * @param string $url
      * @param string $handler
-     * @return void
+     * @return Nero\Core\Routing\Route
      */
     public function register($method, $url, $handler)
     {
-        //lets setup a route
+        //lets setup a new route
         $route = new Route;
         $route->method = $method;
         $route->url = $this->sanitizeURL($url);
@@ -50,6 +51,12 @@ class LaravelRouter implements RouterInterface
     }
 
 
+    /**
+     * Helper method for testing.
+     *
+     * @param string $url
+     * @return bool
+     */
     public function has($url)
     {
 	foreach ($this->routes as $route){
@@ -62,7 +69,7 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Main method for routing a request
+     * Main method for routing a request.
      *
      * @param Request $request 
      * @return assoc array
@@ -86,7 +93,7 @@ class LaravelRouter implements RouterInterface
   
 
     /**
-     * Load the registered routes from a file
+     * Load the registered routes from the routes file.
      *
      * @return void
      */
@@ -102,7 +109,7 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Pattern match the requested route against the registered routes and return the matched route
+     * Pattern match the requested route against the registered routes and return the matched route.
      *
      * @param Request $request 
      * @return stdClass $route
@@ -113,17 +120,17 @@ class LaravelRouter implements RouterInterface
         $url = $this->sanitizeURL($request->getPathInfo());
 
         //match the url to the routes
-        foreach($this->routes as $route){
-            //matches will contain the captured segments of the url
+        foreach ($this->routes as $route){
+            //matches stores captured segments of the url
             $matches = [];
 
             //get the request method or http verb(if its supplied by the form use that value instead)
             $requestMethod = strtoupper($request->getMethod());
-            if($request->get('_method'))
+            if ($request->get('_method'))
                 $requestMethod = strtoupper($request->get('_method'));
 
             //match the current route regEx with the supplied url and the request method(verb)
-            if(preg_match($route->patternRegEx, $url, $matches) && strtoupper($route->method) === $requestMethod){
+            if (preg_match($route->patternRegEx, $url, $matches) && strtoupper($route->method) === $requestMethod){
                 $route->params = $this->extractParams($matches);
                 return $route;
             }
@@ -135,7 +142,7 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Extract the controller name from the route stdClass
+     * Extract the controller name from the route.
      *
      * @param stdClass $route 
      * @return string
@@ -147,7 +154,7 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Extract the method name from the route stdClass
+     * Extract the method name from the route.
      *
      * @param stdClass $route 
      * @return string
@@ -159,7 +166,7 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Extract the parameters from the regEx matches array
+     * Extract the parameters from the regEx matches array.
      *
      * @param array $matches 
      * @return array
@@ -175,10 +182,10 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Generate the regEx pattern from a url string
+     * Generate the regEx pattern from a url string.
      *
      * @param string $url 
-     * @return string(regEx)
+     * @return string
      */
     private function generateRegExPattern($url)
     {
@@ -186,9 +193,9 @@ class LaravelRouter implements RouterInterface
         $explodedUrl = explode('/', $url);
         $result = [];
 
-        foreach($explodedUrl as $part){
-            //if part = {segment}
-            if(preg_match("/^{[0-9a-zA-Z]+}$/", $part))
+        foreach ($explodedUrl as $part){
+            //if part = "{segment}"
+            if (preg_match("/^{[0-9a-zA-Z]+}$/", $part))
                 //add the regex for capturing the segment
                 $result[] = "([0-9a-zA-Z@.]+)";
             else
@@ -205,7 +212,7 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Escape slashes from a string, used for regEx manipulation
+     * Escape slashes from a string, used for regEx generation.
      *
      * @param string $string 
      * @return string
@@ -217,7 +224,7 @@ class LaravelRouter implements RouterInterface
 
 
     /**
-     * Sanitize url with php built-in filters
+     * Sanitize url with php built-in filters.
      *
      * @param string $url 
      * @return string

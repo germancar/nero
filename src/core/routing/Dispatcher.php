@@ -5,23 +5,18 @@ use Nero\Core\Reflection\Resolver;
 use Nero\Interfaces\DispatcherInterface;
 
 
-/***************************************************************************
- * Dispatcher is responsible for dispatching the route
- * to the right controller and method and injecting it with dependecies.
- * This is done through the use of reflection API. Dispatcher
- * gets the route info(assoc array) as argument to the dispatchRoute
- * method. It then examines the methods signature to find out its
- * dependecies which are resolved from the container and injected into
- * the invocation of the method. It is assumed that the arguments of
- * the built-in types(which are resolved from the route) are listed first
- * in the method, followed by the class type ones which are resolved from
- * the IoC container.
- ****************************************************************************/
+/**
+ * Dispatcher is responsible for invoking the correct method on the correct controller
+ * and to return the response
+ */
 class Dispatcher implements DispatcherInterface
 {
-    private $method = "";
+    /**
+     * Reflection resolver
+     *
+     * @var Nero\Core\Reflection\Resolver
+     */
     private $resolver = null;
-    private $urlParameters = [];
 
 
     /**
@@ -36,19 +31,21 @@ class Dispatcher implements DispatcherInterface
         $controllerName = "Nero\\App\\Controllers\\". ucfirst($route['controller']);
 
         //contains the name of the method that should be invoked
-        $this->method = $route['method'];
+        $method = $route['method'];
 
         //contains parameters extracted from the url
-        $this->urlParameters = $route['params'];
+        $urlParameters = $route['params'];
 
         //lets create the resolver which will do all the reflection work for us
-        $this->resolver = new Resolver($controllerName, $this->method);
+        $this->resolver = new Resolver($controllerName, $method);
+
+	//var_dump($urlParameters);
 
 	//invoke the method on the controller
-	$response = $this->resolver->invoke($this->urlParameters);
+	$response = $this->resolver->invoke($urlParameters);
 
         //if its a simple string, wrap it into the response class
-        if(is_string($response))
+        if (is_string($response))
             return new \Nero\Core\Http\Response($response);
 
 

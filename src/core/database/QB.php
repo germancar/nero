@@ -1,16 +1,13 @@
-<?php namespace Nero\Core\Database;
+<?php
+
+namespace Nero\Core\Database;
 
 use Nero\Core\Database\DB;
 
-
-/**********************************************************
-   QueryBuilder class is used for formulating queries in
-   clean and easy way. QueryBuilder is used by the Model
-   class to implement its own methods for interfacing
-   with the database. If you find yourself in need of
-   raw SQL manipulation, you are free to do so through
-   the db singleton.
-**********************************************************/
+/**
+ * QueryBuilder used for fluent database queries.
+ *
+ */
 class QB
 {
     private $db;
@@ -38,7 +35,7 @@ class QB
         $instance = new static;
         $instance->db = DB::getInstance();
 
-        if($tables == "")
+        if ($tables == "")
             throw new \Exception('Table name empty.');
 
         $instance->tables = $tables;
@@ -59,7 +56,7 @@ class QB
         $questionMarks = [];
 
         //lets add bindings and populate question marks
-        foreach($data as $key => &$value){
+        foreach ($data as $key => &$value){
             $this->addBinding($value);
             $questionMarks[] = '?';
         }
@@ -73,8 +70,6 @@ class QB
         //generate sql
         $this->sql = "INSERT INTO {$this->tables} {$formatedColumnNames} VALUES {$formatedQuestionsMarks} ;";
 
-        $this->echoSQL();
-
         return  $this->db->query($this->sql, $this->bindings);
     }
 
@@ -87,8 +82,7 @@ class QB
      */
     public function set(array $data)
     {
-        $columns = [];
-        foreach($data as $key => $value){
+        foreach ($data as $key => $value){
             $this->addBinding($value);
             $columns[] = "{$key}=?";
         }
@@ -110,8 +104,6 @@ class QB
     {
         $this->sql = "UPDATE {$this->tables} {$this->set} {$this->whereClauses};";
 
-        $this->echoSQL();
-
         return $this->db->query($this->sql, $this->bindings);
     }
 
@@ -124,8 +116,6 @@ class QB
     public function delete()
     {
         $this->sql = "DELETE FROM {$this->tables} {$this->whereClauses};";
-
-        $this->echoSQL();
 
         return $this->db->query($this->sql, $this->bindings);
     }
@@ -174,7 +164,7 @@ class QB
     public function where($column, $operator, $value)
     {
         //lets check that the supplied operator is supported
-        if(!in_array($operator, $this->operators))
+        if (!in_array($operator, $this->operators))
             throw new \Exception("Operator {$operator} not supported.");
 
         $this->whereClauses = "WHERE {$column} {$operator} ?";
@@ -197,7 +187,7 @@ class QB
     public function andWhere($column, $operator, $value)
     {
         //lets check that the supplied operator is supported
-        if(!in_array($operator, $this->operators))
+        if (!in_array($operator, $this->operators))
             throw new \Exception("Operator {$operator} not supported.");
 
         $this->whereClauses .= " AND {$column} {$operator} ?";
@@ -220,7 +210,7 @@ class QB
     public function orWhere($column, $operator, $value)
     {
         //lets check that the supplied operator is supported
-        if(!in_array($operator, $this->operators))
+        if (!in_array($operator, $this->operators))
             throw new \Exception("Operator {$operator} not supported.");
 
         $this->whereClauses .= " OR {$column} {$operator} ?";
@@ -281,8 +271,7 @@ class QB
     public function whereIn($column, array $values)
     {
         //lets bind the values and populate coresponding question marks
-        $questionMarks= [];
-        foreach($values as $value){
+        foreach ($values as $value){
             $questionMarks[] = "?";
             $this->addBinding($value);
         }
@@ -305,8 +294,7 @@ class QB
     public function whereNotIn($column, array $values)
     {
         //lets bind the values and populate coresponding question marks
-        $questionMarks= [];
-        foreach($values as $value){
+        foreach ($values as $value){
             $questionMarks[] = "?";
             $this->addBinding($value);
         }
@@ -333,9 +321,9 @@ class QB
 
         $i = 0;
         $length = count($columns);
-        foreach($columns as $column => $order){
+        foreach ($columns as $column => $order){
             $formatedColumns .= "{$column} {$order}";
-            if($i < $length - 1)
+            if ($i < $length - 1)
                 $formatedColumns .= ', ';
             $i++;
         }
@@ -354,8 +342,7 @@ class QB
      */
     public function groupBy($columns)
     {
-        $formatedColumns = "";
-        if(is_array($columns))
+        if (is_array($columns))
             $formatedColumns = implode(',', $columns);
         else
             $formatedColumns = implode(',', func_get_args());
@@ -366,13 +353,18 @@ class QB
     }
 
 
+    /**
+     * Limit clause
+     *
+     * @param int $value
+     * @return QB
+     */
     public function limit($value)
     {
         $this->limit = "LIMIT {$value}";
 
         return $this;
     }
-
 
 
     /**
@@ -384,20 +376,17 @@ class QB
     public function get($column = "")
     {
         //lets check if the select is specified(if not then select all)
-        if(!isset($this->select))
+        if (!isset($this->select))
             $this->select = "SELECT * ";
 
         //generate sql
         $this->sql = "{$this->select} FROM {$this->tables} {$this->whereClauses} {$this->orderBy} {$this->groupBy} {$this->limit};";
 
-        //for testing
-        $this->echoSQL();
-
         //lets execute the query
         $result = $this->db->query($this->sql, $this->bindings);
 
         //return only the specified column if supplied
-        if($column != "")
+        if ($column != "")
             return $result[$column];
         else
             return $result;
@@ -425,7 +414,7 @@ class QB
         echo "SQL = " . $this->sql . "<br/>";
         echo "Bindings = ";
 
-        foreach($this->bindings as $binding){
+        foreach ($this->bindings as $binding){
             echo $binding . " | ";
         }
 

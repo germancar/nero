@@ -1,12 +1,13 @@
-<?php namespace Nero\Core\Routing;
+<?php
+
+namespace Nero\Core\Routing;
 
 use Symfony\Component\HttpFoundation\Request;
 
-/********************************************************************
- * BasicRouter implements simple routing similar to CodeIgniter.
- * Route method returns an assoc array containing information needed
- * to call the right method on the right controller.
- ********************************************************************/
+/**
+ * CodeIgniter routing implementation
+ *
+ */
 class CodeIgniterRouter implements RouterInterface
 {
     /**
@@ -29,21 +30,20 @@ class CodeIgniterRouter implements RouterInterface
         //get the safe exploded url
         $explodedURL = $this->explodePath($request);
 
-        
         //resolve the url
-        if(is_array($explodedURL)){
+        if (is_array($explodedURL)){
             //resolve the controller
             $result['controller'] = $explodedURL[0];
             unset($explodedURL[0]);
 
             //resolve the method
-            if(isset($explodedURL[1]) && $explodedURL[1] != ""){
+            if (isset($explodedURL[1]) && $explodedURL[1] != ""){
                 $result['method'] = $explodedURL[1];
                 unset($explodedURL[1]);
             }
 
             //resolve the remaining params
-            if(isset($explodedURL[2]) && $explodedURL[2] != ""){
+            if (isset($explodedURL[2]) && $explodedURL[2] != ""){
                 $result['params'] = array_values($explodedURL);
             }
         }
@@ -60,7 +60,7 @@ class CodeIgniterRouter implements RouterInterface
      */
     private function explodePath(Request $request)
     {
-        if($request->getPathInfo() == '/')
+        if ($request->getPathInfo() == '/')
             return null;
             
    

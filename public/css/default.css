@@ -1,0 +1,31 @@
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    font-family: 'Open Sans Condensed', sans-serif;
+}
+
+/* Welcome splash screen */
+#welcome {
+    text-align: center;
+    margin: 250px auto;
+    color: #777;
+    font-size: 2em;
+}
+
+#welcome h1 {
+    font-size: 4em;
+}
+
+/* Exception view */
+.exception-view {
+    font-size: 1.5em;
+}
+
+/* 404 Not Found */
+.not-found404 h1{
+    text-align: center;
+    position: relative;
+    top: 200px;
+    font-size: 4em;
+}

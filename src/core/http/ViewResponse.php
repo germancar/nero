@@ -2,20 +2,37 @@
 
 namespace Nero\Core\Http;
 
-/********************************************************************
- * ViewResponse implements the needed functionality for displaying
- * views to the users. It implements the abstract send method for
- * rendering views to the browser.
- ********************************************************************/
+/**
+ * ViewResponse implements the views. Views can be plain php files or twig templates.
+ *
+ */
 class ViewResponse extends Response
 {
+    /**
+     * Which template to send back to the user
+     *
+     * @var stdClass
+     */
     private $template = null;
+
+
+    /**
+     * Holds names of the plain php files to be used in the response
+     *
+     * @var array
+     */
     private $views = [];
 
 
+    /**
+     * Constructor
+     *
+     * @param string $templateName
+     * @param array $data
+     * @return void
+     */
     public function __construct($templateName = "", $data = [])
     {
-	//setup the template 
 	$this->template = new \stdClass;
 	$this->template->name = $templateName;
 	$this->template->data = $data;
@@ -23,25 +40,29 @@ class ViewResponse extends Response
 
 
     /**
-     * Add a view to the response for rendering
+     * Add a view(plain php file) to the response for rendering
      *
      * @param string $viewName 
      * @param array $data 
-     * @return Nero\Core\Http\Response
+     * @return Nero\Core\Http\ViewResponse
      */
     public function add($viewName,array $data = [])
     {
         //store the view names and their data for rendering
         $this->views[] = ['name' => $viewName, 'data' => $data];
 
-        //lets return the response object so methods can be chained
         return $this;
     }
 
 
+    /**
+     * Set the data to be used in a template
+     *
+     * @param array $data
+     * @return Nero\Core\Http\ViewResponse
+     */
     public function with(array $data)
     {
-	//just set the template data
 	$this->template->data = $data;
 
 	return $this;
@@ -49,30 +70,29 @@ class ViewResponse extends Response
 
 
     /**
-     * Send the response back to the user
+     * Send the response to the user
      *
+     * @return void
      */
     public function send()
     {
-        if(!empty($this->views)){
+        if (!empty($this->views)){
             //lets process the views(plain PHP files) if any are queued for rendering
-            foreach($this->views as $view){
+            foreach ($this->views as $view){
                 $this->renderPHPfile($view['name'], $view['data']);
             }
         }
 	else{
-	    //get the data
+	    //lets render the twig template
 	    $template = $this->template->name . '.twig';
 	    $data = $this->template->data;
-
-	    //echo the template
 	    echo container('Twig')->render($template, $data);
 	}
     }
 
 
     /**
-     * Render a view to the page
+     * Render a php file to the page
      *
      * @param string $view 
      * @param array $data
@@ -80,7 +100,7 @@ class ViewResponse extends Response
      */
     private function renderPHPfile($view, $data = [])
     {
-        //lets extract the array keys into variables which can be used in the view
+        //lets extract the array elements into variables which can be used in the view
         extract($data);
 
         //include the view

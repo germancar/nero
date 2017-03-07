@@ -1,5 +1,6 @@
-<?php namespace Nero\Core\Reflection;
+<?php
 
+namespace Nero\Core\Reflection;
 
 /**
  * Resolver class, used for invoking methods on objects.
@@ -9,7 +10,19 @@
  */
 class Resolver
 {
+    /**
+     * Target object to be instantiated
+     *
+     * @var mixed
+     */
     private $target;
+
+
+    /**
+     * Which method will be inspected and invoked
+     *
+     * @var string
+     */
     private $reflectionMethod;
 
 
@@ -39,7 +52,7 @@ class Resolver
         $object = new $this->target;
 
 	//check for errors
-	if(count($args) != $this->nonClassParameterCount())
+	if (count($args) != $this->nonClassParameterCount())
 	    throw new \Exception("Expected parameters mismatch");
 
 	//merge the route(url) parameters and class type hinted parameters
@@ -59,14 +72,10 @@ class Resolver
     private function nonClassParameterCount()
     {
         $expectedParameters = $this->reflectionMethod->getParameters();
-        
-        $count = 0;
-        foreach($expectedParameters as $parameter){
-            if($parameter->getClass() == false)
-                $count++;
-        }
 
-        return $count;
+	return array_reduce($expectedParameters, function($carry, $parameter){
+	    return ($parameter->getClass() == false) ? $carry+1 : $carry;
+	}, 0);
     }
 
 
@@ -77,13 +86,12 @@ class Resolver
      */
     private function resolveObjectsFromContainer()
     {
-        $objects = [];
-
+	$objects = [];
         $expectedParameters = $this->reflectionMethod->getParameters();
-
+	
         //we can resolve the expected classes from the IoC container
-        foreach($expectedParameters as $parameter){
-            if($parameter->getClass()){
+        foreach ($expectedParameters as $parameter){
+            if ($parameter->getClass()){
                 //extract the class name
                 $className = nonNamespacedClassName($parameter->getClass()->name);
 

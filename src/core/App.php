@@ -1,30 +1,38 @@
-<?php namespace Nero\Core;
+<?php
 
+namespace Nero\Core;
+
+use Nero\Core\Http\Response;
 use Nero\Core\Reflection\Resolver;
 use Nero\Interfaces\RouterInterface;
 use Nero\Interfaces\DispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 
 
-/************************************************************************************
- * App is the next bottleneck of the application after the front controller bootstrap.
- * It is a high level representation of the framework. It is responsible
- * for handling a http request and returning back the response to the user.
- * This is done by utilizing the router and a dispatcher. 
- ***********************************************************************************/
+/**
+ * High level representation of the application.
+ *
+ */
 class App
 {
     /**
-     * RouterInterface implementation
-     * DispatcherInterface implementation
+     * Router implementation to be used.
+     *
+     * @var Nero\Interfaces\RouterInterface
      */
     private $router = null;
-    private $container = null;
+
+
+    /**
+     * Dispatcher implementation.
+     *
+     * @var Nero\Interfaces\DispatcherInterface
+     */
     private $dispatcher = null;
 
 
     /**
-     * Array of bootstrapers to be booted up before we handle a request
+     * Array of bootstrapers to be booted up before we handle a request.
      */
     private $bootstrappers = [
         'Nero\Bootstrap\StartSession',
@@ -32,33 +40,31 @@ class App
 
 
     /**
-     * Array of terminators to be run after we handle the request
+     * Array of terminators to be run after we handle the request.
      *
      */
     private $terminators = [
-
+	'Nero\Terminators\LogRequest',
     ];
 
 
     /**
-     * Constructor, injected with router and dispatcher  implementation
+     * Constructor, injected with router and dispatcher  implementation.
      *
-     * @param RouterInterface $router 
-     * @param DispatcherInterface $dispatcher
+     * @param Nero\Interfaces\RouterInterface $router 
+     * @param Nero\Interfaces\DispatcherInterface $dispatcher
      */
     public function __construct(RouterInterface $router, DispatcherInterface $dispatcher)
     {
-        //setup the dependencies
         $this->router = $router;
         $this->dispatcher = $dispatcher;
 
-        //lets run bootstrappers
         $this->bootstrap();
     }
     
     
     /**
-     * High level method for handling a http request
+     * High level method for handling a http request.
      *
      * @param Request $request
      * @return Nero\Core\Http\Response
@@ -71,10 +77,11 @@ class App
         //run the route filters
         $filterResponse = $this->runRouteFilters($route);
 
-        if(is_subclass_of($filterResponse, 'Nero\\Core\\Http\\Response'))
+	//if some filter returns a HTTP response, send it directly back to the user, bypassing further processing
+        if (is_subclass_of($filterResponse, Response::class))
             return $filterResponse;
 
-        //pass the route to the dispatcher for invoking the controller and constructing the response
+        //pass the route to the dispatcher for invoking the requested method on the controller
         $response = $this->dispatcher->dispatchRoute($route);
 
         //lets return the response we got back
@@ -83,36 +90,38 @@ class App
 
 
     /**
-     * Run the route filters
+     * Run the route filters.
      *
      * @param array $route 
      * @return mixed
      */
     private function runRouteFilters($route)
     {
-        foreach($route['filters'] as $filter){
+        foreach ($route['filters'] as $filter){
             $filterName = "Nero\\App\\Filters\\" . $filter;
 
+	    //setup a resolver so we can inject dependencies into the handle method of the filter
             $resolver = new Resolver($filterName, 'handle');
 
+	    //invoke the handle method on the filter
             $result = $resolver->invoke();
             
-            if(is_subclass_of($result, "Nero\\Core\\Http\Response"))
+            if (is_subclass_of($result, Response::class))
                 return $result;
         }
-
+		
         return true;
     }
 
 
     /**
-     * Run bootstrapers
+     * Run bootstrappers.
      *
      * @return void
      */
     private function bootstrap()
     {
-        foreach($this->bootstrappers as $bootstrapper){
+        foreach ($this->bootstrappers as $bootstrapper){
 	    $resolver = new Resolver($bootstrapper, 'boot');
 	    $resolver->invoke();
         }
@@ -120,15 +129,15 @@ class App
 
 
     /**
-     * Run terminators
+     * Run terminators.
      *
      * @return void
      */
     public function terminate()
     {
-        foreach($this->terminators as $terminator){
-            $instance = new $terminator;
-            $instance->run();
+        foreach ($this->terminators as $terminator){
+	    $resolver = new Resolver($terminator, 'terminate');
+	    $resolver->invoke();
         }
     }
 }

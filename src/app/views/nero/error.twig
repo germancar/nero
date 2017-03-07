@@ -1,0 +1,24 @@
+{% extends "layouts/app.twig" %}
+
+{% block title %} Nero - there was an error {% endblock %}
+
+{% block content %}
+    <div class="container exception-view">
+	<!-- Heading -->
+	<div class="row">
+	    <h1>Nero Exception</h1>
+	    <h3>{{ exception_name }} : {{ exception_message }}</h3>
+	</div>
+
+	<!-- Stack trace -->
+	<div class="row">
+            <p>Stack trace: </p>
+
+	    <ul class="list-group">
+                {% for line in trace %}
+                    <li class="list-group-item">{{ line }}</li>
+		{% endfor %}
+	    </ul>
+	</div>
+    </div>
+{% endblock %}

@@ -1,11 +1,11 @@
-<?php namespace Nero\Bootstrap;
+<?php
 
-
+namespace Nero\Bootstrap;
 
 class StartSession
 {
     /**
-     * Boot method
+     * Just start a session in boot method.
      *
      * @return void
      */

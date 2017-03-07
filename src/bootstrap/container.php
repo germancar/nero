@@ -1,14 +1,15 @@
 <?php
 
-//we are using Pimple for dependency injection and symfony http request class
 use Pimple\Container;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
 use Symfony\Component\HttpFoundation\Request;
 
-
-//create the container to handle the services
+//Create a new instance of the container to handle the services(classes needed in the project)
 $container = new Container();
 
-//Let's add the services
+
+//Bind all the services that we need, you can add your own bindings here as you wish
 $container["RouterInterface"] = function($c){
     return new Nero\Core\Routing\LaravelRouter;
 };
@@ -59,6 +60,16 @@ $container['Twig'] = function($c){
 };
 
 
+$container['Logger'] = function($c){
+    // Create the logger
+    $logger = new Logger('logger');
+ 
+    // Now add some handlers
+    $logger->pushHandler(new StreamHandler(__DIR__.'/../app.log', Logger::INFO));
 
-//lets return the container 
+    return $logger;
+};
+
+
+//return the container so that it can be used
 return $container;

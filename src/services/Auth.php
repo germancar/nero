@@ -1,20 +1,19 @@
-<?php namespace Nero\Services;
+<?php
 
-
+namespace Nero\Services;
 
 use Session;
 use Nero\Core\Database\QB;
 use Nero\Interfaces\AuthInterface;
 
-
 /**
- * Auth service used for registering and loggin in of the users
+ * Auth service is used for registering and logging in of the users.
  *
  */
 class Auth implements AuthInterface
 {
     /**
-     * Register a new user
+     * Register a new user.
      *
      * @param array $data 
      * @return bool
@@ -39,7 +38,7 @@ class Auth implements AuthInterface
 
 
     /**
-     * Implement logging in of a user
+     * Implement logging in of a user.
      *
      * @param string $key 
      * @param string $password 
@@ -55,8 +54,8 @@ class Auth implements AuthInterface
         $queryResult = QB::table($authTable)->where($authKey, '=', $key)->limit(1)->get();
 
         //check password
-        if($queryResult){
-            if(password_verify($password, $queryResult[0]['password'])){
+        if ($queryResult){
+            if (password_verify($password, $queryResult[0]['password'])){
                 //set the session
                 container('Session')->set("user_id", $queryResult[0]['id']);
 
@@ -72,7 +71,7 @@ class Auth implements AuthInterface
 
 
     /**
-     * Logout a user
+     * Logout a user.
      *
      */
     public function logout()
@@ -82,7 +81,7 @@ class Auth implements AuthInterface
 
 
     /**
-     * Check if the user is logged in
+     * Check if the user is logged in.
      *
      * @return bool
      */
@@ -96,7 +95,7 @@ class Auth implements AuthInterface
 
 
     /**
-     * Return the currently logged in user model
+     * Return the currently logged in user model.
      *
      * @return Model
      */
@@ -113,7 +112,7 @@ class Auth implements AuthInterface
 
 
     /**
-     * Create a model instance from array data
+     * Create a model instance from array data.
      *
      * @param array $queryResult 
      * @return Model
@@ -122,7 +121,7 @@ class Auth implements AuthInterface
     {
 	$model = $this->namespacedAuthModel();
 
-        if(!class_exists($model))
+        if (!class_exists($model))
             throw new \Exception("Model $model does not exist.");
 
 
@@ -131,7 +130,7 @@ class Auth implements AuthInterface
 
 
     /**
-     * Get the full namespaced model name from the auth config
+     * Get the full namespaced model name from the auth config.
      *
      * @return string
      */

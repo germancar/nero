@@ -10,7 +10,7 @@ class LaravelRouterTest extends TestCase
 {
 
     /**
-     * Test registering new routes
+     * Test registering new routes.
      *
      */
     public function testRegisterRoutes()
@@ -27,7 +27,7 @@ class LaravelRouterTest extends TestCase
 
 
     /**
-     * Test routing to controller and method
+     * Test routing to controller and method.
      *
      */
     public function testRouteRequestToArray()

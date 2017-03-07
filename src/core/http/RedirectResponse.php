@@ -2,17 +2,22 @@
 
 namespace Nero\Core\Http;
 
-/*******************************************************************************
- * RedirectResponse implements the needed funcionality for redirecting the users
- * to different urls. It implements the send method.
- *******************************************************************************/
+/**
+ * Response used for redirecting user
+ *
+ */
 class RedirectResponse extends Response
 {
+    /**
+     * Where to redirect
+     *
+     * @var string
+     */
     private $redirectPath;
 
 
     /**
-     * Constructor, path can be set directly
+     * Constructor
      *
      * @param string $to 
      * @return void
@@ -53,8 +58,9 @@ class RedirectResponse extends Response
 
 
     /**
-     * Send, used for sending the response to the user
+     * Send the response to the user
      *
+     * @return void
      */
     public function send()
     {

@@ -1,6 +1,11 @@
-<?php namespace Nero\Interfaces;
+<?php
 
+namespace Nero\Interfaces;
 
+/**
+ * AuthInterface defines methods for authenticating users.
+ *
+ */
 interface AuthInterface 
 {
     public function register(array $data);

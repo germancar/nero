@@ -49,7 +49,7 @@ function container($service = "")
 {
     global $container;
 
-    if($service == "")
+    if ($service == "")
         return $container;
 
     return $container[$service];
@@ -125,7 +125,7 @@ function config($key = "")
 {
     $config = require __DIR__ . "/../app/conf.php";
 
-    if($key != "")
+    if ($key != "")
         return $config[$key];
 
     return $config;
@@ -142,8 +142,8 @@ function isMultidimensional(array $array)
 {
     if (count($array) == count($array, COUNT_RECURSIVE))
         return false;
-    else
-        return true;
+
+    return true;
 }
 
 
@@ -156,7 +156,7 @@ function isMultidimensional(array $array)
  */
 function stringStartsWith($pattern, $string)
 {
-    if(strpos($string, $pattern) === 0)
+    if (strpos($string, $pattern) === 0)
         return true;
 
     return false;
@@ -170,10 +170,10 @@ function stringStartsWith($pattern, $string)
  */
 function inDevelopment()
 {
-    if(config('build') == 'development')
+    if (config('build') == 'development')
         return true;
-    else
-        return false;
+
+    return false;
 }
 
 
@@ -188,18 +188,17 @@ function flash($name, $value = "")
 {
     $session = container('Session');
 
-    if(isset($name) && $value != "" || is_array($value)){
+    if( isset($name) && $value != "" || is_array($value)){
         //set a new flash message
         $session->flash($name, $value);
         return true;
     }
-    else if(isset($name) && $value == ""){
+    else if (isset($name) && $value == ""){
         //retrive the flash message and destroy it
         $flash = $session->getFlash($name);
         $session->destroyFlash();
         return $flash;
     }
-
 }
 
 
@@ -210,7 +209,7 @@ function flash($name, $value = "")
  */
 function hasErrors()
 {
-    if(container('Session')->getErrors())
+    if (container('Session')->getErrors())
         return true;
 
     return false;
@@ -230,7 +229,7 @@ function errors()
 
     $session->destroyErrors();
 
-    if($errors)
+    if ($errors)
         return $errors;
 
     return [];
@@ -250,7 +249,7 @@ function error($value)
 
 
 /**
- * Get the old input for based on key
+ * Get the old input for a field
  *
  * @param string $key 
  * @return string
@@ -271,7 +270,7 @@ function modelsToArray(array $models)
 {
     $data = [];
 
-    foreach($models as $model)
+    foreach ($models as $model)
         $data[] = $model->toArray();
 
     return $data;
@@ -286,7 +285,7 @@ function modelsToArray(array $models)
  */
 function inspect($variable)
 {
-    if(is_array($variable))
+    if (is_array($variable))
         print_r($variable);
     else
         var_dump($variable);

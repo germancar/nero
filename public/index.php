@@ -7,23 +7,21 @@
  * Ultimately it sends the apps returned response to the user.
  *******************************************************************/
 
+use Nero\Exceptions\ExceptionManager;
+
 //report all errors(for development)
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-
 //require the autoloader
 require_once __DIR__ . "/../vendor/autoload.php";
-
 
 //load up the services container
 $container = require_once  __DIR__ . "/../src/bootstrap/container.php";
 
-
 //load up helper functions
 require_once __DIR__ . "/../src/bootstrap/helpers.php";
-
 
 //bootstrap the application
 try {
@@ -43,10 +41,8 @@ try {
     $app->terminate();
 }
 catch(\Exception $e){
-    $data['exception'] = $e;
-    $data['exception_name'] = get_class($e);
-    extract($data);
-    require "../src/app/views/nero/error.php";	
+    //handle the exception, format it to a view
+    ExceptionManager::handleException($e)->send();
 }
 
 

@@ -3,13 +3,14 @@
 namespace Nero\App\Controllers;
 
 
-/*******************************************************
- * Base controller implements validation logic for now
- ******************************************************/
+/**
+ * BaseController implements validation logic.
+ *
+ */
 class BaseController
 {
     /**
-     * Validate input data against specified rules, work in progress
+     * Validate input data against specified rules.
      *
      * @param array $data 
      * @param array $rules 
@@ -19,13 +20,12 @@ class BaseController
     {
         $result = true;
 
-        foreach($data as $key => $value){
-            //get the rules for the current key
-            $relevantRules = $rules[$key];
+        foreach ($data as $key => $value){
+            $fieldRules = $rules[$key];
 
-            //iterate over the rules and apply them to the value
-            foreach(explode('|', $relevantRules) as $singleRule){
-                if(!$this->validateRule($key, $value, $singleRule))
+	    //apply all the specified rules against the data
+            foreach (explode('|', $fieldRules) as $rule){
+                if (!$this->validateRule($key, $value, $rule))
                     $result = false;
             }
         }
@@ -35,7 +35,7 @@ class BaseController
 
 
     /**
-     * Process single rule against data
+     * Process single rule against data.
      *
      * @param string $key 
      * @param mixed $data 
@@ -44,17 +44,17 @@ class BaseController
      */
     private function validateRule($key, $data, $rule)
     {
-        if(strpos($rule, ':')){
-            //rule has a parameter
+	//check if the rule has an associated parameter
+        if (strpos($rule, ':')){
             $ruleWithParameter = explode(':', $rule);
             $rule = $ruleWithParameter[0];
             $ruleParameter = $ruleWithParameter[1];
         } 
 
-
-        switch($rule){
+	//process the rule accordingly
+        switch ($rule){
             case 'required':
-                if(!empty($data))
+                if (!empty($data))
                     return true;
 
                 $field = str_replace('_', ' ', $key);
@@ -63,7 +63,7 @@ class BaseController
                 break;
 
             case 'email':
-                if($this->isEmail($data))
+                if ($this->isEmail($data))
                     return true;
 
                 $field = str_replace('_', ' ', $key);
@@ -72,7 +72,7 @@ class BaseController
                 break;
 
             case 'unique':
-                if($this->isUnique($key, $data, $ruleParameter))
+                if ($this->isUnique($key, $data, $ruleParameter))
                     return true;
 
                 $field = str_replace('_', ' ', $key);
@@ -81,7 +81,7 @@ class BaseController
                 break;
 
             case 'match':
-                if($this->matches($key, $ruleParameter))
+                if ($this->matches($key, $ruleParameter))
                     return true;
 
                 $field = str_replace('_', ' ', $key);
@@ -90,36 +90,54 @@ class BaseController
                 return false;
                 break;
 
-                //here we will add other validation options
+                //other rules can be added here
         }
     }
 
 
+    /**
+     * Check it he string is a valid email.
+     *
+     * @param string $value
+     * @return bool
+     */
     private function isEmail($value)
     {
         return filter_var($value, FILTER_VALIDATE_EMAIL);
     }
 
 
+    /**
+     * Check if the value is unique in a table.
+     *
+     * @param string $key
+     * @param mixed $data
+     * @param string $table
+     * @return bool
+     */
     private function isUnique($key, $data, $table)
     {
-        $result = QB::table($table)->where($key, '=', $data)->get();
-
-        if($result)
+        if (QB::table($table)->where($key, '=', $data)->get())
             return false;
 
         return true;
     }
 
 
+    /**
+     * Check if the two fields in a form match.
+     *
+     * @param string $key
+     * @param string $ruleParameter
+     * @return bool
+     */
     private function matches($key, $ruleParameter)
     {
         $request = container('Request');
         
-        if($request->request->get($key) == $request->request->get($ruleParameter))
+        if ($request->request->get($key) == $request->request->get($ruleParameter))
             return true;
 
         return false;
     }
-
 }
