@@ -1,6 +1,6 @@
 <?php
 
-namespace Nero\Core;
+namespace Nero\Services;
 
 use Nero\Core\Http\Response;
 use Nero\Core\Reflection\Resolver;
@@ -46,6 +46,24 @@ class App
     private $terminators = [
 	'Nero\Terminators\LogRequest',
     ];
+
+    
+    /**
+     * Install the service into the container.
+     *
+     * @return void
+     */
+    public static function install()
+    {
+	container()['App'] = function($c){
+	    return new App($c['RouterInterface'], $c['DispatcherInterface']);
+	};
+
+	container()['Request'] = function($c){
+	    return Request::createFromGlobals();
+	};
+
+    }
 
 
     /**

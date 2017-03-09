@@ -178,6 +178,18 @@ function inDevelopment()
 
 
 /**
+ * Testing variable is set in the test bootstrap, used to disable loading of routes file in tests.
+ *
+ * @return bool
+ */
+function testing()
+{
+    global $testing;
+    return $testing;
+}
+
+
+/**
  * Flash a message to session,or retrieve it from session
  *
  * @param string $name 

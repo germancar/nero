@@ -2,6 +2,7 @@
 
 namespace Nero\Terminators;
 
+use Nero\Services\Proxies\Log;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -12,6 +13,6 @@ class LogRequest
 {
     public function terminate(Request $request)
     {
-	container('Logger')->info("Request for " . $request->getPathInfo());
+	Log::info("Request for " . $request->getPathInfo());
     }
 }

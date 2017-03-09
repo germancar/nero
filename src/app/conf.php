@@ -6,24 +6,35 @@
  * @return assoc array
  */
 return [
-    //build target, used for error reporting
+    //Build target, used for error reporting
     'build' => 'development',
 
-    //database config
-    'db_hostname' => '',
-    'db_username' => '',
-    'db_password' => '',
+    //Database config
+    'db_hostname' => 'localhost',
+    'db_username' => 'root',
+    'db_password' => 'street27',
     'db_name'     => '',
 
     //CodeIgniter router settings
     'default_controller' => 'Welcome',
     'default_method'     => 'index',
 
-    //site base path config
+    //Site base path config
     'base_path' => 'http://localhost/nero/public/',
 
     //Auth service config
     'auth_table' => 'users',
     'auth_key' => 'email',
-    'auth_return_model' => 'User' 
+    'auth_return_model' => 'User',
+
+    //Registered services
+    'services' => [
+	'Nero\Services\App',
+	'Nero\Services\Auth',
+	'Nero\Services\Twig',
+	'Nero\Services\Logger',
+	'Nero\Services\Session',
+	'Nero\Services\Dispatcher',
+	'Nero\Services\Routing\LaravelRouter',
+    ]
 ];

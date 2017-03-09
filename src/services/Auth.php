@@ -2,16 +2,29 @@
 
 namespace Nero\Services;
 
-use Session;
 use Nero\Core\Database\QB;
+use Nero\Services\Proxies\Session;
 use Nero\Interfaces\AuthInterface;
 
 /**
  * Auth service is used for registering and logging in of the users.
  *
  */
-class Auth implements AuthInterface
+class Auth extends Service implements AuthInterface
 {
+    /**
+     * Install the service into the container.
+     *
+     * @return void
+     */
+    public static function install()
+    {
+	container()['Auth'] = function($c){
+	    return new Auth;
+	};
+    }
+
+
     /**
      * Register a new user.
      *
@@ -30,7 +43,7 @@ class Auth implements AuthInterface
         $model = $this->createModelFromData($data);
 
         //lets clean up the old input from the form
-        container('Session')->destroyOldInput();
+        Session::destroyOldInput();
 
         //persist the model
         return $model->save();
@@ -57,10 +70,10 @@ class Auth implements AuthInterface
         if ($queryResult){
             if (password_verify($password, $queryResult[0]['password'])){
                 //set the session
-                container('Session')->set("user_id", $queryResult[0]['id']);
+                Session::set("user_id", $queryResult[0]['id']);
 
                 //clean up the old input from the form
-                container('Session')->destroyOldInput();
+                Session::destroyOldInput();
 
                 return true;
             }
@@ -87,7 +100,7 @@ class Auth implements AuthInterface
      */
     public function check()
     {
-        if(container('Session')->get('user_id'))
+        if(Session::get('user_id'))
             return true;
 
         return false;
@@ -101,7 +114,7 @@ class Auth implements AuthInterface
      */
     public function user()
     {
-        if($userID = container('Session')->get('user_id')){
+        if($userID = Session::get('user_id')){
 	    $model = $this->namespacedAuthModel();
 
             return $model::find($userID);

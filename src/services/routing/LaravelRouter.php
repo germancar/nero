@@ -1,7 +1,8 @@
 <?php
 
-namespace Nero\Core\Routing;
+namespace Nero\Services\Routing;
 
+use Nero\Services\Service;
 use Nero\Interfaces\RouterInterface;
 use Symfony\Component\HttpFoundation\Request;
 
@@ -16,7 +17,7 @@ use Symfony\Component\HttpFoundation\Request;
  * requested url and if there is a match that route is parsed into
  * the router response(which is used by the dispatcher).
  */
-class LaravelRouter implements RouterInterface
+class LaravelRouter extends Service implements RouterInterface
 {
     /**
      * Holds all registered routes.
@@ -24,6 +25,19 @@ class LaravelRouter implements RouterInterface
      * @var array
      */
     private $routes = [];
+
+
+    /**
+     * Install the service into the container.
+     *
+     * @return void
+     */
+    public static function install()
+    {
+	container()["RouterInterface"] = function($c){
+	    return new LaravelRouter;
+	};
+    }
 
 
     /**
@@ -77,7 +91,8 @@ class LaravelRouter implements RouterInterface
     public function route(Request $request)
     {
         //lets load in the routes from the app/routes file
-        $this->loadRoutes($this);
+	if (!testing())
+            $this->loadRoutes();
 
         //route will hold the matched route
         $route = $this->matchRoute($request);
@@ -97,12 +112,8 @@ class LaravelRouter implements RouterInterface
      *
      * @return void
      */
-    private function loadRoutes($router)
+    private function loadRoutes()
     {
-	//extract the router so that it can be accessed from the routes file
-	$data['router'] = $router;
-	extract($data);
-
 	//load up the routes file(register routes)
         require_once __DIR__ . "/../../app/routes.php";
     }

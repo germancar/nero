@@ -1,16 +1,29 @@
-<?php namespace Nero\Core\Routing;
+<?php
 
+namespace Nero\Services;
 
 use Nero\Core\Reflection\Resolver;
 use Nero\Interfaces\DispatcherInterface;
-
 
 /**
  * Dispatcher is responsible for invoking the correct method on the correct controller
  * and to return the response
  */
-class Dispatcher implements DispatcherInterface
+class Dispatcher extends Service implements DispatcherInterface
 {
+    /**
+     * Install the service into the container.
+     *
+     * @return void
+     */
+    public static function install()
+    {
+	container()["DispatcherInterface"] = function($c){
+	    return new Dispatcher;
+	};
+    }
+
+    
     /**
      * Reflection resolver
      *
@@ -39,8 +52,6 @@ class Dispatcher implements DispatcherInterface
         //lets create the resolver which will do all the reflection work for us
         $this->resolver = new Resolver($controllerName, $method);
 
-	//var_dump($urlParameters);
-
 	//invoke the method on the controller
 	$response = $this->resolver->invoke($urlParameters);
 
@@ -48,6 +59,9 @@ class Dispatcher implements DispatcherInterface
         if (is_string($response))
             return new \Nero\Core\Http\Response($response);
 
+	//if its an array convert it to json response
+	if (is_array($response))
+	    return new \Nero\Core\Http\JsonResponse($response);
 
         return $response;
     }

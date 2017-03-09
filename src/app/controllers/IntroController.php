@@ -2,9 +2,8 @@
 
 namespace Nero\App\Controllers;
 
-
 /**
- * Simple controller that demonstrates different responses 
+ * Simple controller that demonstrates different responses.
  *
  */
 class IntroController extends BaseController
@@ -12,7 +11,7 @@ class IntroController extends BaseController
     public function welcome()
     {
         //lets greet the user with a view
-	return view('nero/welcome');
+	return view('nero.welcome');
     }
 
     public function json()
@@ -37,14 +36,4 @@ class IntroController extends BaseController
         //lets just return string, which will be converted to response behind the scenes
         return "Welcome to Nero!";
     }
-
-    public function user($id)
-    {
-	//showcase route parameters
-	return json([
-	    "msg" => "You request a user with an ID",
-	    "ID" => $id
-	]);
-    }
-
 }

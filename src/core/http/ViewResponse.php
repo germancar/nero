@@ -2,6 +2,8 @@
 
 namespace Nero\Core\Http;
 
+use Nero\Services\Proxies\Twig;
+
 /**
  * ViewResponse implements the views. Views can be plain php files or twig templates.
  *
@@ -9,7 +11,7 @@ namespace Nero\Core\Http;
 class ViewResponse extends Response
 {
     /**
-     * Which template to send back to the user
+     * Which template to send back to the user.
      *
      * @var stdClass
      */
@@ -17,7 +19,7 @@ class ViewResponse extends Response
 
 
     /**
-     * Holds names of the plain php files to be used in the response
+     * Holds names of the plain php files to be used in the response.
      *
      * @var array
      */
@@ -25,7 +27,7 @@ class ViewResponse extends Response
 
 
     /**
-     * Constructor
+     * Constructor.
      *
      * @param string $templateName
      * @param array $data
@@ -40,7 +42,7 @@ class ViewResponse extends Response
 
 
     /**
-     * Add a view(plain php file) to the response for rendering
+     * Add a view(plain php file) to the response for rendering.
      *
      * @param string $viewName 
      * @param array $data 
@@ -56,13 +58,21 @@ class ViewResponse extends Response
 
 
     /**
-     * Set the data to be used in a template
+     * Set the data to be used in a template.
      *
      * @param array $data
      * @return Nero\Core\Http\ViewResponse
      */
-    public function with(array $data)
+    public function with()
     {
+	$data = [];
+
+	//merge all data into single array
+	foreach (func_get_args() as $arg){
+	    $data += $arg;
+	}	
+
+	//setup data
 	$this->template->data = $data;
 
 	return $this;
@@ -70,7 +80,7 @@ class ViewResponse extends Response
 
 
     /**
-     * Send the response to the user
+     * Send the response to the user.
      *
      * @return void
      */
@@ -84,15 +94,15 @@ class ViewResponse extends Response
         }
 	else{
 	    //lets render the twig template
-	    $template = $this->template->name . '.twig';
+	    $template = str_replace(".", "/", $this->template->name) . '.twig';
 	    $data = $this->template->data;
-	    echo container('Twig')->render($template, $data);
+	    echo Twig::render($template, $data);
 	}
     }
 
 
     /**
-     * Render a php file to the page
+     * Render a php file to the page.
      *
      * @param string $view 
      * @param array $data

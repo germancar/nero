@@ -10,10 +10,16 @@ use Nero\Core\Database\Model;
  */
 class JsonResponse extends Response
 {
+    /**
+     * Data to be encoded to json.
+     *
+     * @var array
+     */
     private $jsonData = [];
 
+
     /**
-     * Constructor
+     * Constructor, injected with data.
      *
      * @param array $data 
      * @return void
@@ -36,7 +42,7 @@ class JsonResponse extends Response
 
 
     /**
-     * Set the data
+     * Set the data.
      *
      * @param array $data 
      * @return Nero\Core\Http\JsonResponse

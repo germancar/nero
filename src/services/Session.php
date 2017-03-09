@@ -3,8 +3,21 @@
 namespace Nero\Services;
 
 
-class Session
+class Session extends Service
 {
+    /**
+     * Install the service into the container.
+     *
+     * @return void
+     */
+    public static function install()
+    {
+	container()['Session'] = function($c){
+	    return new Session;
+	};
+    }
+
+
     /**
      * Set a new session variable
      *

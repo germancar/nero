@@ -3,41 +3,29 @@
 namespace Nero\Tests;
 
 use PHPUnit\Framework\TestCase;
-use Nero\Core\Routing\LaravelRouter as Router;
 use Symfony\Component\HttpFoundation\Request;
 
 class LaravelRouterTest extends TestCase
 {
-
-    /**
-     * Test registering new routes.
-     *
-     */
     public function testRegisterRoutes()
     {
-	//create a new router
-	$router = new Router;
-
 	//register routes
-	$router->register('get', '/home', 'Intro@welcome');
+	$router = new \Nero\Services\Routing\LaravelRouter;
+	$router->register('get', '/route', 'TestController@route');
 
 	//assert the router has the registered route
-	$this->assertTrue($router->has('home'));
+	$this->assertTrue($router->has('route'));
     }
 
 
-    /**
-     * Test routing to controller and method.
-     *
-     */
     public function testRouteRequestToArray()
     {
 	//setup the router
-	$router = new Router;
-	$router->register('get', 'home', 'TestController@test');
+	$router = new \Nero\Services\Routing\LaravelRouter;
+	$router->register('get', '/test', 'TestController@test');
 
 	//create the simulated request 
-	$request = Request::create('/home', 'GET');
+	$request = Request::create('/test', 'GET');
 
 	//get the response from the router
 	$response = $router->route($request);
@@ -46,4 +34,6 @@ class LaravelRouterTest extends TestCase
 	$this->assertEquals('TestController', $response['controller']);
 	$this->assertEquals('test', $response['method']);
     }
+
+
 }

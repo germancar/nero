@@ -14,16 +14,17 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
-//require the autoloader
+//Require the autoloader
 require_once __DIR__ . "/../vendor/autoload.php";
 
-//load up the services container
-$container = require_once  __DIR__ . "/../src/bootstrap/container.php";
-
-//load up helper functions
+//Include helper functions to make our lives easier
 require_once __DIR__ . "/../src/bootstrap/helpers.php";
 
-//bootstrap the application
+//Load up the services container
+$container = require_once  __DIR__ . "/../src/bootstrap/container.php";
+
+
+//Bootstrap the application
 try {
     //get the instance of the app from the container 
     $app = container('App');

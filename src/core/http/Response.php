@@ -2,14 +2,16 @@
 
 namespace Nero\Core\Http;
 
+use Nero\Services\Proxies\Session;
+
 /**
- * Abstract http response class, used for returning a response to the user.
+ * HTTP response class, used for returning a response to the user.
  *
  */
 class Response
 {
     /**
-     * Simple message to be returned
+     * Simple message to be returned.
      *
      * @var string
      */
@@ -17,7 +19,7 @@ class Response
     
 
     /**
-     * Constructo
+     * Constructor.
      *
      * @param string $message
      * @return void
@@ -29,7 +31,7 @@ class Response
 
 
     /**
-     * Set a response header
+     * Set a response header.
      *
      * @param string $value 
      * @return Nero\Core\Http\Response
@@ -43,21 +45,19 @@ class Response
 
     
     /**
-     * Add old input to the session
+     * Add old input to the session.
      *
      * @param array $data 
      * @return $this
      */
     public function withOld(array $data)
     {
-        $session = container('Session');
-
         //lets clear the old input
-        $session->destroyOldInput();
+        Session::destroyOldInput();
         
         //lets populate the old input
         foreach($data as $key => $value){
-            $session->setOldInput($key, $value);
+            Session::setOldInput($key, $value);
         }
 
         return $this;
@@ -65,9 +65,9 @@ class Response
 
 
     /**
-     * Just return the message to the user, subclasses will implement this method
+     * Just return the message to the user, subclasses will overide this method.
      *
-     * @return mixed
+     * @return string
      */
     public function send()
     {

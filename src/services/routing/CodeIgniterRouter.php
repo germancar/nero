@@ -1,6 +1,6 @@
 <?php
 
-namespace Nero\Core\Routing;
+namespace Nero\Services\Routing;
 
 use Symfony\Component\HttpFoundation\Request;
 
@@ -8,8 +8,17 @@ use Symfony\Component\HttpFoundation\Request;
  * CodeIgniter routing implementation
  *
  */
-class CodeIgniterRouter implements RouterInterface
+class CodeIgniterRouter extends Service implements RouterInterface
 {
+    /*
+    public static function install()
+    {
+	container()["RouterInterface"] = function($c){
+	    return new CodeIgniterRouter;
+	};
+    }
+    */
+
     /**
      * Process the requested url and return route info as assoc array
      *
