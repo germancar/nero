@@ -9,10 +9,9 @@ namespace Nero\Services\Proxies;
 abstract class Proxy
 {
     /**
-     * Description
+     * Get the accessor(key) of the object from the IoC.
      *
-     * @param type name
-     * @return type
+     * @return string
      */
     abstract public static function getAccessor();
 

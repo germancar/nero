@@ -10,9 +10,9 @@ return [
     'build' => 'development',
 
     //Database config
-    'db_hostname' => 'localhost',
-    'db_username' => 'root',
-    'db_password' => 'street27',
+    'db_hostname' => '',
+    'db_username' => '',
+    'db_password' => '',
     'db_name'     => '',
 
     //CodeIgniter router settings
