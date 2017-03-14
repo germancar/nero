@@ -12,6 +12,3 @@ Router::register('get', '/', 'IntroController@welcome');
 Router::register('get', '/json', 'IntroController@json');
 Router::register('get', '/redirect', 'IntroController@redirect');
 Router::register('get', '/text', 'IntroController@text');
-
-
-

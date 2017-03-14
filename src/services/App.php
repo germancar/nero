@@ -55,14 +55,13 @@ class App
      */
     public static function install()
     {
-	container()['App'] = function($c){
+	container()->bind("App", function($c){
 	    return new App($c['RouterInterface'], $c['DispatcherInterface']);
-	};
+	});
 
-	container()['Request'] = function($c){
+	container()->bind('Request', function($c){
 	    return Request::createFromGlobals();
-	};
-
+	});
     }
 
 
@@ -77,6 +76,7 @@ class App
         $this->router = $router;
         $this->dispatcher = $dispatcher;
 
+	//run the bootstrappers
         $this->bootstrap();
     }
     

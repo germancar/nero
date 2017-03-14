@@ -19,9 +19,9 @@ class Auth extends Service implements AuthInterface
      */
     public static function install()
     {
-	container()['Auth'] = function($c){
+	container()->bind('Auth',function($c){
 	    return new Auth;
-	};
+	});
     }
 
 

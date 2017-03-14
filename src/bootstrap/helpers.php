@@ -6,7 +6,7 @@ use Nero\Core\Http\ViewResponse;
 
 
 /**
- * Get the base path from the config array
+ * Get the base path from the config array.
  *
  * @return string
  */
@@ -17,7 +17,7 @@ function basePath()
 
 
 /**
- * Create a full url from path
+ * Create a full url from path.
  *
  * @param string $path
  * @return string
@@ -29,7 +29,7 @@ function url($path)
 
 
 /**
- * Return hidden form input field with the http method
+ * Return hidden form input field with the http method.
  *
  * @param string $value
  * @return string
@@ -52,12 +52,12 @@ function container($service = "")
     if ($service == "")
         return $container;
 
-    return $container[$service];
+    return $container->resolve($service);
 }
 
 
 /**
- * CSS helper, generates link element for linking css files
+ * CSS helper, generates link element for linking css files.
  *
  * @param string $path
  * @return string 
@@ -69,7 +69,7 @@ function css($path)
 
 
 /**
- * Javascript helper, returns script tag
+ * Javascript helper, returns script tag.
  *
  * @param string $path
  * @return string
@@ -81,7 +81,7 @@ function javascript($path)
 
 
 /**
- * Helper for creating a view response
+ * Helper for creating a view response.
  *
  * @return Nero\Core\Http\ViewResponse
  */
@@ -92,7 +92,7 @@ function view($template = "", $data = [])
 
 
 /**
- * Helper for creating a json response
+ * Helper for creating a json response.
  *
  * @param array $data 
  * @return Nero\Core\Http\JsonResponse
@@ -104,7 +104,7 @@ function json($data = [])
 
 
 /**
- * Helper for creating a redirect response
+ * Helper for creating a redirect response.
  *
  * @param string to 
  * @return Nero\Core\Http\RedirectResponse
@@ -116,7 +116,7 @@ function redirect($to = "")
 
 
 /**
- * Utility function for accessing config
+ * Utility function for accessing config.
  *
  * @param string $key 
  * @return mixed
@@ -133,7 +133,7 @@ function config($key = "")
 
 
 /**
- * Utility for checking if the array is multidimensional
+ * Utility for checking if the array is multidimensional.
  *
  * @param array $array 
  * @return bool
@@ -148,7 +148,7 @@ function isMultidimensional(array $array)
 
 
 /**
- * Check if a string starts with another one
+ * Check if a string starts with another one.
  *
  * @param string $pattern 
  * @param string $string 
@@ -164,7 +164,7 @@ function stringStartsWith($pattern, $string)
 
 
 /**
- * Check if the app is in development mode,used for error feedback
+ * Check if the app is in development mode,used for error feedback.
  *
  * @return bool
  */
@@ -190,7 +190,7 @@ function testing()
 
 
 /**
- * Flash a message to session,or retrieve it from session
+ * Flash a message to session,or retrieve it from session.
  *
  * @param string $name 
  * @param string $value 
@@ -215,7 +215,7 @@ function flash($name, $value = "")
 
 
 /**
- * Check if there are any errors
+ * Check if there are any errors.
  *
  * @return bool
  */
@@ -229,7 +229,7 @@ function hasErrors()
 
 
 /**
- * Get all the errors from the session
+ * Get all the errors from the session.
  *
  * @return array
  */
@@ -249,7 +249,7 @@ function errors()
 
 
 /**
- * Set a new error to the session
+ * Set a new error to the session.
  *
  * @param mixed $value 
  * @return void
@@ -261,7 +261,7 @@ function error($value)
 
 
 /**
- * Get the old input for a field
+ * Get the old input for a field.
  *
  * @param string $key 
  * @return string
@@ -273,7 +273,7 @@ function old($key)
 
 
 /**
- * Pack model instances into an array
+ * Pack model instances into an array.
  *
  * @param array $models
  * @return array
@@ -290,7 +290,27 @@ function modelsToArray(array $models)
 
 
 /**
- * Helper function for printing out variables
+ * Create an array of specified models .
+ *
+ * @param array $data
+ * @param string $model
+ * @return array
+ */
+function arrayOfModels(array $data, $model)
+{
+    $result = [];
+    $model = "Nero\\App\\Models\\" . $model;
+
+    foreach ($data as $element){
+	$result[] = $model::fromArray($element);
+    }
+
+    return $result;
+}
+
+
+/**
+ * Helper function for printing out variables.
  *
  * @param mixed $variable 
  * @return void
@@ -305,7 +325,7 @@ function inspect($variable)
 
 
 /**
- * Extract the name of the class without the namespace
+ * Extract the name of the class without the namespace.
  *
  * @param string $class
  * @return string

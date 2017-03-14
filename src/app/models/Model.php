@@ -12,14 +12,14 @@ use Nero\Core\Database\QB;
 class Model
 {
     /**
-     * DB handle
+     * DB handle.
      *
      * @var Nero\Core\Database\DB
      */
     protected $db = null;
 
     /**
-     * Database table that the model coresponds to
+     * Database table that the model coresponds to.
      *
      * @var string
      */
@@ -27,7 +27,15 @@ class Model
 
     
     /**
-     * Attributes of the model
+     * Model class.
+     *
+     * @var string
+     */
+    protected $className;
+
+
+    /**
+     * Attributes of the model.
      *
      * @var array
      */
@@ -35,7 +43,23 @@ class Model
 
 
     /**
-     * Constructor, init the db handle and table name
+     * Primary key.
+     *
+     * @var mixed
+     */
+    protected $primaryKey = "id";
+
+
+    /**
+     * Query retrieval modes, MODEL or RAW array.
+     *
+     */
+    const MODEL = 0;
+    const RAW = 1;
+
+
+    /**
+     * Constructor, init the db handle, table and class name.
      *
      * @return void
      */
@@ -46,11 +70,15 @@ class Model
         //if the table name is not explicitly set, lets parse the table name the default way - lowercase model name + 's' at the end
 	if (!isset($this->table))
             $this->table = strtolower(nonNamespacedClassName(get_class($this)) . 's');
+
+	//setup class name
+	if (!isset($this->className))
+	    $this->className = nonNamespacedClassName(get_class($this));
     }
 
 
     /**
-     * Magic get method for accessing properties
+     * Magic get method for accessing properties.
      *
      * @param string $name 
      * @return mixed
@@ -58,14 +86,14 @@ class Model
     public function __get($name)
     {
         if (!in_array($name, array_keys($this->attributes)))
-            throw new \Exception("Trying to access nonexistant property on a model.");
+            throw new \InvalidArgumentException("Trying to access nonexistant property '{$name}' on model {$this->className}.");
 
         return $this->attributes[$name];
     }
 
 
     /**
-     * Magic method for setting attributes(properties)
+     * Magic method for setting attributes(properties).
      *
      * @param string $name 
      * @param mixed $value 
@@ -78,7 +106,7 @@ class Model
 
 
     /**
-     * Magic method for checking if the property is set
+     * Magic method for checking if the property is set.
      *
      * @param string $name
      * @return bool
@@ -93,7 +121,7 @@ class Model
 
 
     /**
-     * Implement dynamic static method for easy retrieval from the db.
+     * Implement dynamic static method, whereAttribute(value) format. 
      *
      * @param string $name
      * @param array $arguments        
@@ -101,22 +129,45 @@ class Model
      */
     public static function __callStatic($name, $arguments)
     {
+	//where dynamic method
         if (stringStartsWith("where", $name)){
-            $propertyName = strtolower(substr($name, 5));
+	    //extract the attribute name from the method called
+            $attributeName = strtolower(substr($name, 5));
 
             $instance = new static;
 
-            $result = QB::table($instance->table)->where($propertyName, '=', $arguments[0])->get();
+            $data = QB::table($instance->table)->where($attributeName, '=', $arguments[0])->get();
 
-            return $instance->packResults($result);
+            return arrayOfModels($data, $instance->className);
         }
 
-        throw new \Exception("Calling nonexistant method {$name}.");
+
+        throw new \Exception("Calling nonexistant method '{$name}'.");
+    }
+
+    
+    /**
+     * Foreach dynamic method.
+     *
+     * @param string $name
+     * @param string $arguments
+     * @return bool
+     */
+    public function __call($name, $arguments)
+    {
+	if (stringStartsWith("foreach", $name)){
+	    $relationName = strtolower(substr($name, 7));
+	    $result = $this->$relationName();
+	    array_walk($result, $arguments[0]);
+	    return true;
+	}
+
+        throw new \Exception("Calling nonexistant method '{$name}'.");	
     }
 
 
     /**
-     * Used for setting custom table names
+     * Used for setting custom table names.
      *
      * @param string $table 
      * @return void
@@ -128,7 +179,7 @@ class Model
 
 
     /**
-     * Return the model table name
+     * Return the model table name.
      *
      * @return string
      */
@@ -139,7 +190,7 @@ class Model
 
 
     /**
-     * Return the attributes as array
+     * Return the attributes as array.
      *
      * @return array
      */
@@ -150,7 +201,7 @@ class Model
 
 
     /**
-     * Create a model from array
+     * Create a model from array.
      *
      * @param array $data 
      * @return Model instance
@@ -166,7 +217,7 @@ class Model
 
 
     /**
-     * Create a new instance of the model and persist it in the database
+     * Create a new instance of the model and persist it in the database.
      *
      * @param array $data 
      * @return Model
@@ -182,7 +233,7 @@ class Model
 
 
     /**
-     * Get all database rows as an array
+     * Get all database rows as an array of models.
      *
      * @return array
      */
@@ -190,14 +241,14 @@ class Model
     {
         $instance = new static;
 
-        $queryResult = QB::table($instance->table)->get();
+        $data = QB::table($instance->table)->get();
 
-        return $instance->packResults($queryResult);
+        return arrayOfModels($data, $instance->className);
     }
 
 
     /**
-     * Find by id
+     * Find by id.
      *
      * @param int $id 
      * @return array
@@ -206,14 +257,17 @@ class Model
     {
         $instance = new static;
         
-        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->get()[0];
+        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->first();
 
+	if (empty($instance->attributes))
+	    return null;
+	
         return $instance;
     }
 
     
     /**
-     * Find by id or throw an exception
+     * Find by id or throw an exception.
      *
      * @param int $id 
      * @return array
@@ -222,7 +276,7 @@ class Model
     {
         $instance = new static;
         
-        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->get()[0];
+        $instance->attributes = QB::table($instance->table)->where('id', '=', $id)->first();
 
         if (empty($instance->attributes))
             throw new \Exception("Lookup for an id of {$id} on table {$instance->table} failed.");
@@ -232,25 +286,60 @@ class Model
 
 
     /**
-     * Implement retrival of models based on column 
+     * Implement retrival of models based on column.
      *
-     * @param string $column 
-     * @param string $operator 
-     * @param string $value 
      * @return array
      */
-    public static function where($column, $operator, $value)
+    public static function where()
     {
+	//parse the arguments
+	$args = func_get_args();
+
+	if (count($args) == 3){
+	    $column = $args[0];
+	    $operator = $args[1];
+	    $value = $args[2];
+	}
+	else if (count($args) == 2){
+	    $column = $args[0];
+	    $operator = '=';
+	    $value = $args[1];
+	}
+
         $instance = new static;
 
-        $queryResult = QB::table($instance->table)->where($column, $operator, $value)->get();
+        $data = QB::table($instance->table)->where($column, $operator, $value)->get();
 
-        return $instance->packResults($queryResult);
+	return arrayOfModels($data, $instance->className);
     }
 
 
     /**
-     * Implements has one relationship
+     * Raw sql query, or start a query builder tied to this model(QB will return an array of model instances).
+     *
+     * @return mixed
+     */
+    public static function query($sql = "", $bindings = [], $retrieveMode = self::MODEL)
+    {
+	$instance = new static;
+
+	//raw sql query, parse result into an array of models
+	if ($sql != "" && $retrieveMode == self::MODEL){
+	    return arrayOfModels($instance->db->query($sql, $bindings), $instance->className);
+	}
+
+	//raw sql query, return raw results(assoc array)
+	if ($sql != "" && $retrieveMode == self::RAW){
+	    return $instance->db->query($sql, $bindings);
+	}
+
+	//return QueryBuilder tied to this model class, so the user can chain methods on it.
+	return QB::table($instance->table)->model($instance->className);
+    }
+
+
+    /**
+     * Implements has one relationship.
      *
      * @param string $model
      * @param string $foreignKey
@@ -264,15 +353,15 @@ class Model
 	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
 
 	//query the db
-        $queryResult = QB::table($tableName)->where($foreignKey, '=', $this->id)->limit(1)->get();
+        $data = QB::table($tableName)->where($foreignKey, '=', $this->{$this->primaryKey})->first();
 
 	//return instance of the related model
-        return $this->packResults($queryResult, $model)[0];
+        return $model::fromArray($data);
     }
 
 
     /**
-     * Implements the has many relationship
+     * Implements the has many relationship.
      *
      * @param string $model 
      * @param string $foreignKey 
@@ -286,15 +375,15 @@ class Model
 	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
 
 	//query the db
-        $queryResult = QB::table($tableName)->where($foreignKey, '=', $this->id)->get();
+        $data = QB::table($tableName)->where($foreignKey, '=', $this->{$this->primaryKey})->get();
 
 	//return array of requested models
-        return $this->packResults($queryResult, $model);
+        return arrayOfModels($data, $model);
     }
 
 
     /**
-     * Implements the belongs to relationship
+     * Implements the belongs to relationship.
      *
      * @param string $model
      * @param string $foreignKey 
@@ -304,19 +393,20 @@ class Model
     public function belongsTo($model, $foreignKey = "", $tableName = "")
     {
 	//collect the info needed for the query
-        $foreignKey = $this->belongsForeignKey($foreignKey, $tableName);
 	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
+        $foreignKey = $this->belongsForeignKey($foreignKey, $tableName);
+	$primaryKey = (new $model)->primaryKey;
 
 	//query the db 
-        $queryResult = QB::table($tableName)->where('id', '=', $this->{$foreignKey})->limit(1)->get();
+        $data = QB::table($tableName)->where($primaryKey, '=', $this->{$foreignKey})->first();
 
 	//return singular instance of the requested model
-        return $this->packResults($queryResult, $model)[0];
+        return $model::fromArray($data);
     }
 
 
     /**
-     * Implement saving of a model to a database
+     * Implement saving of a model to a database.
      *
      * @return mixed
      */
@@ -325,36 +415,39 @@ class Model
 	//create the array consisting of the attributes which can be saved in the database(the ones that exist in the schema)
         $attributesToBePersisted = $this->persistableAttributes($this->attributes);
 
-        if ($this->id){//TODO primary key other than id?
+        if (isset($this->{$this->primaryKey}) && $this->isStored()){
             //we need to update the model in the db(it contains the id, which means it already exists in the database)
             return QB::table($this->table)
                      ->set($attributesToBePersisted)
-                     ->where('id', '=', $this->id)
+                     ->where($this->primaryKey, '=', $this->{$this->primaryKey})
                      ->update();
         }
         else{
             //we need to insert a new record into the db(id is missing which means the model exist in memory only)
-            $lastInsertedId = QB::table($this->table)->insert($attributesToBePersisted);
-            
-            //set the newly obtained id 
-            $this->attributes['id'] = $lastInsertedId;
+	    if ($this->primaryKey == "id"){
+		$lastInsertedId = QB::table($this->table)->insert($attributesToBePersisted);
 
-            //return the id 
-            return $lastInsertedId;
+		$this->attributes['id'] = $lastInsertedId;
+
+		return $lastInsertedId;
+	    }
+
+	    //if primary key is not id, just insert the values into the db
+	    return QB::table($this->table)->insert($attributesToBePersisted);
         }
     }
 
 
     /**
-     * Implement deleting a row from the db
+     * Delete the model from the database.
      *
      * @return bool
      */
     public function delete()
     {
-        if (isset($this->id)){
+        if (isset($this->{$this->primaryKey}) && $this->isStored()){
 	    //if the row exist in the db delete it and return the result of the query
-            $result = QB::table($this->table)->where('id', '=', $this->id)->delete();
+            $result = QB::table($this->table)->where($this->primaryKey, '=', $this->{$this->primaryKey})->delete();
             $this->attributes = [];
             return $result;
         }
@@ -365,6 +458,17 @@ class Model
     }
 
  
+    /**
+     * Helper method to check if the model instance is already stored in database.
+     *
+     * @return bool
+     */
+    private function isStored()
+    {
+	return QB::table($this->table)->where($this->primaryKey, '=', $this->{$this->primaryKey})->get();
+    }
+
+
     /**
      * Extract the default table name from the model class.
      * Just return lowercase with appended 's' at the end.
@@ -379,50 +483,7 @@ class Model
 
 
     /**
-     * Pack results of a query into array or single model instance
-     *
-     * @param array $queryResult 
-     * @param string $model 
-     * @return array
-     */
-    protected function packResults($queryResult, $model = "")
-    {
-        if ($queryResult)
-            return $this->packModelsIntoArray($queryResult, $model);
-
-        //query returned false, no results, return empty array
-        return [];
-    }
-
-
-    /**
-     * Create an array of models
-     *
-     * @param array $queryResult 
-     * @param string $model 
-     * @return array
-     */
-    private function packModelsIntoArray($queryResult, $modelName = "")
-    {
-        $packedResult = [];
-
-        foreach ($queryResult as $result){
-	    //create the instance of the requested model
-	    if ($modelName == "")
-		$model = new static;
-	    else
-		$model = new $modelName;
-
-            $model->attributes = $result;
-            $packedResult[] = $model;
-        }
-
-        return $packedResult;
-    }
-
-
-    /**
-     * Create an assoc array containing only the keys and values of the attributes which can be persisted in the database
+     * Create an assoc array containing only the keys and values of the attributes which can be persisted in the database.
      *
      * @param array $attributes 
      * @return assoc array
@@ -447,7 +508,7 @@ class Model
 
 
     /**
-     * Create a foreign key to be used in has many relationships queries
+     * Create a foreign key to be used in has many relationships queries.
      *
      * @param string $foreignKey 
      * @return string
@@ -456,17 +517,16 @@ class Model
     {       
 	if ($foreignKey == ""){
 	    //default foreign key generation, "model"_id
-            $modelName = nonNamespacedClassName(get_class($this));
-            return strtolower($modelName) . "_id";
+            return strtolower($this->className) . "_id";
         }
-        else
-	    //return the user supplied explicit foreign key, no need for processing
-            return $foreignKey;
+
+	//return the user supplied explicit foreign key, no need for processing
+        return $foreignKey;
     }
 
 
     /**
-     * Create a foreign key to be used in belongs to relationship queries
+     * Create a foreign key to be used in belongs to relationship queries.
      *
      * @param string $foreignKey 
      * @param string $tableName 
@@ -474,11 +534,12 @@ class Model
      */
     private function belongsForeignKey($foreignKey, $tableName)
     {
-        if ($foreignKey == "")
+        if ($foreignKey == ""){
 	    //default foreign key generation, ("tableName" - 's')_id
             return rtrim(strtolower($tableName), 's') . "_id";
-        else
-	    //return the user supplied explicit foreign key, no need for processing
-            return $foreignKey;
+	} 
+
+	//return the user supplied explicit foreign key, no need for processing
+        return $foreignKey;
     }
 }

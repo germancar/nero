@@ -18,9 +18,9 @@ class Dispatcher extends Service implements DispatcherInterface
      */
     public static function install()
     {
-	container()["DispatcherInterface"] = function($c){
+	container()->bind("DispatcherInterface", function($c){
 	    return new Dispatcher;
-	};
+	});
     }
 
     
@@ -62,6 +62,10 @@ class Dispatcher extends Service implements DispatcherInterface
 	//if its an array convert it to json response
 	if (is_array($response))
 	    return new \Nero\Core\Http\JsonResponse($response);
+
+	//also convert models to json
+	if (is_subclass_of($response, 'Nero\App\Models\Model'))
+	    return new \Nero\Core\Http\JsonResponse($response->toArray());
 
         return $response;
     }

@@ -14,11 +14,14 @@ ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 
+
 //Require the autoloader
 require_once __DIR__ . "/../vendor/autoload.php";
 
+
 //Include helper functions to make our lives easier
 require_once __DIR__ . "/../src/bootstrap/helpers.php";
+
 
 //Load up the services container
 $container = require_once  __DIR__ . "/../src/bootstrap/container.php";

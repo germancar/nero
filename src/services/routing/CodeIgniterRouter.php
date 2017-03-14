@@ -10,14 +10,17 @@ use Symfony\Component\HttpFoundation\Request;
  */
 class CodeIgniterRouter extends Service implements RouterInterface
 {
-    /*
+    /**
+     * Register the router into the container
+     *
+     * @return void
+     */
     public static function install()
     {
-	container()["RouterInterface"] = function($c){
+	container()->bind("RouterInterface", function($c){
 	    return new CodeIgniterRouter;
-	};
+	});
     }
-    */
 
     /**
      * Process the requested url and return route info as assoc array

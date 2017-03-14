@@ -12,9 +12,9 @@ class Session extends Service
      */
     public static function install()
     {
-	container()['Session'] = function($c){
+	container()->bind("Session", function($c){
 	    return new Session;
-	};
+	});
     }
 
 

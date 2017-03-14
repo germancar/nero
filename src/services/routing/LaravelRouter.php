@@ -34,9 +34,9 @@ class LaravelRouter extends Service implements RouterInterface
      */
     public static function install()
     {
-	container()["RouterInterface"] = function($c){
+	container()->bind("RouterInterface", function($c){
 	    return new LaravelRouter;
-	};
+	});
     }
 
 

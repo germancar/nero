@@ -11,18 +11,17 @@ class Twig extends Service
      */
     public static function install()
     {
-	container()['TwigLoader'] = function($c){
+	container()->bind("TwigLoader", function($c){
 	    return new \Twig_Loader_Filesystem('../src/app/views');
-	};
+	});
 
-
-	container()['Twig'] = function($c){
+	container()->bind("Twig", function($c){
 	    $twig = new \Twig_Environment($c['TwigLoader'], [
 		'debug' => true
 	    ]);
 	    $twig->addExtension(new \Twig_Extension_Debug());
 	    
 	    return $twig;
-	};
+	});
     }
 }

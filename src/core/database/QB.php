@@ -2,8 +2,6 @@
 
 namespace Nero\Core\Database;
 
-use Nero\Core\Database\DB;
-
 /**
  * QueryBuilder used for fluent database queries.
  *
@@ -20,11 +18,12 @@ class QB
     private $limit = null;
     private $bindings = [];
     private $operators = ['=', '<=' , '>=', '<', '>', '<>', 'LIKE'];
+    private $model;
     private $sql;
 
 
     /**
-     * Method for starting the query build process
+     * Method for starting the query build process.
      *
      * @param string $tables 
      * @return QB instance
@@ -45,7 +44,7 @@ class QB
 
 
     /**
-     * Used for inserting data into database
+     * Used for inserting data into database.
      *
      * @param array $data 
      * @return array
@@ -75,7 +74,7 @@ class QB
 
 
     /**
-     * Used for setting the columns for update 
+     * Used for setting the columns for update.
      *
      * @param array $data 
      * @return QB instance
@@ -96,7 +95,7 @@ class QB
 
 
     /**
-     * Execute the update query
+     * Execute the update query.
      *
      * @return bool
      */
@@ -109,7 +108,7 @@ class QB
 
 
     /**
-     * Execute the delete query
+     * Execute the delete query.
      *
      * @return bool
      */
@@ -122,7 +121,7 @@ class QB
 
 
     /**
-     * Set the select part of the statement
+     * Set the select part of the statement.
      *
      * @param variable  
      * @return QB instance
@@ -140,7 +139,7 @@ class QB
 
     
     /**
-     * Implement distinct
+     * Implement distinct.
      *
      * @return QB instance
      */
@@ -154,15 +153,29 @@ class QB
 
 
     /**
-     * Add a WHERE clause
+     * Add a WHERE clause.
      *
      * @param  $column 
      * @param  $operator 
      * @param  $value 
      * @return QB instance
      */
-    public function where($column, $operator, $value)
+    public function where()
     {
+	//parse the arguments
+	$args = func_get_args();
+
+	if(count($args) == 3){
+	    $column = $args[0];
+	    $operator = $args[1];
+	    $value = $args[2];
+	}
+	else if (count($args) == 2){
+	    $column = $args[0];
+	    $operator = '=';
+	    $value = $args[1];
+	}
+
         //lets check that the supplied operator is supported
         if (!in_array($operator, $this->operators))
             throw new \Exception("Operator {$operator} not supported.");
@@ -177,15 +190,29 @@ class QB
 
 
     /**
-     * Add an AND part of the WHERE clause
+     * Add an AND part of the WHERE clause.
      *
      * @param  $column 
      * @param  $operator 
      * @param  $value 
      * @return QB instance
      */
-    public function andWhere($column, $operator, $value)
+    public function andWhere()
     {
+	//parse the arguments
+	$args = func_get_args();
+
+	if(count($args) == 3){
+	    $column = $args[0];
+	    $operator = $args[1];
+	    $value = $args[2];
+	}
+	else if (count($args) == 2){
+	    $column = $args[0];
+	    $operator = '=';
+	    $value = $args[1];
+	}
+
         //lets check that the supplied operator is supported
         if (!in_array($operator, $this->operators))
             throw new \Exception("Operator {$operator} not supported.");
@@ -200,15 +227,29 @@ class QB
 
 
     /**
-     * Add an OR part of the WHERE clause
+     * Add an OR part of the WHERE clause.
      *
      * @param  $column 
      * @param  $operator 
      * @param  $value 
      * @return QB instance
      */
-    public function orWhere($column, $operator, $value)
+    public function orWhere()
     {
+	//parse the arguments
+	$args = func_get_args();
+
+	if(count($args) == 3){
+	    $column = $args[0];
+	    $operator = $args[1];
+	    $value = $args[2];
+	}
+	else if (count($args) == 2){
+	    $column = $args[0];
+	    $operator = '=';
+	    $value = $args[1];
+	}
+
         //lets check that the supplied operator is supported
         if (!in_array($operator, $this->operators))
             throw new \Exception("Operator {$operator} not supported.");
@@ -223,7 +264,7 @@ class QB
 
 
     /**
-     * Implement where between functionality
+     * Implement where between functionality.
      *
      * @param string $column 
      * @param value $start 
@@ -243,7 +284,7 @@ class QB
 
 
     /**
-     * Implements the WHERE NOT BETWEEN clause
+     * Implements the WHERE NOT BETWEEN clause.
      *
      * @param string $column 
      * @param int $start 
@@ -263,7 +304,7 @@ class QB
 
 
     /**
-     * Implements the WHERE IN clause
+     * Implements the WHERE IN clause.
      *
      * @param string $column 
      * @return QB instance
@@ -286,7 +327,7 @@ class QB
 
 
     /**
-     * Implements WHERE NOT IN clause
+     * Implements WHERE NOT IN clause.
      *
      * @param string $column 
      * @return QB instance
@@ -309,7 +350,7 @@ class QB
 
 
     /**
-     * Implement the order by clause
+     * Implement the order by clause.
      *
      * @param array $columns 
      * @return QB instance
@@ -336,7 +377,7 @@ class QB
 
 
     /**
-     * Implements the GROUP BY clause
+     * Implements the GROUP BY clause.
      *
      * @return QB instance
      */
@@ -354,7 +395,7 @@ class QB
 
 
     /**
-     * Limit clause
+     * Limit clause.
      *
      * @param int $value
      * @return QB
@@ -368,7 +409,7 @@ class QB
 
 
     /**
-     * Method for retrieving results from the query
+     * Method for retrieving results from the query.
      *
      * @param mixed $columns 
      * @return array
@@ -385,16 +426,46 @@ class QB
         //lets execute the query
         $result = $this->db->query($this->sql, $this->bindings);
 
+	//return a model if requested
+	if (isset($this->model))
+	    return arrayOfModels($result, $this->model);
+
         //return only the specified column if supplied
         if ($column != "")
             return $result[$column];
-        else
-            return $result;
+
+	//return results as array
+        return $result;
     }
 
 
     /**
-     * Add a binding to be used in a query
+     * Retrieve only the first element from the result set.
+     *
+     * @return mixed
+     */
+    public function first()
+    {
+	return $this->get()[0];
+    }
+
+
+    /**
+     * Set the model.
+     *
+     * @param string $modelName
+     * @return QB
+     */
+    public function model($modelName)
+    {
+	$this->model = $modelName;
+
+	return $this;
+    }
+
+
+    /**
+     * Add a binding to be used in a query.
      *
      * @param  $value 
      * @return void
@@ -406,7 +477,7 @@ class QB
 
 
     /**
-     * For testing
+     * For testing.
      *
      */
     private function echoSQL()

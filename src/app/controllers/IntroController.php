@@ -8,32 +8,31 @@ namespace Nero\App\Controllers;
  */
 class IntroController extends BaseController
 {
+    //lets greet the user with a view
     public function welcome()
     {
-        //lets greet the user with a view
 	return view('nero.welcome');
     }
 
+
+    //lets return the data in json format
     public function json()
     {
-        //sample data
         $data['greeting'] = 'Welcome to Nero';
-
-        //lets return the data in json format
         return json($data);
     }
 
 
+    //lets redirect the user to the welcome page
     public function redirect()
     {
-        //lets redirect the user to the welcome page
         return redirect();
     }
 
 
+    //lets just return string, which will be converted to response behind the scenes
     public function text()
     {
-        //lets just return string, which will be converted to response behind the scenes
         return "Welcome to Nero!";
     }
 }

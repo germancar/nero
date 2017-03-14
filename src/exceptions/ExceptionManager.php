@@ -15,6 +15,8 @@ class ExceptionManager
 	//extract exception data
 	$data['exception_name'] = get_class($exception);
 	$data['exception_message'] = $exception->getMessage();
+	$data['exception_line'] = $exception->getLine();
+	$data['exception_file'] = $exception->getFile();
 
 	if ($data['exception_name'] == "Nero\Exceptions\HttpNotFoundException" && !inDevelopment())
 	    return view("nero/http404");

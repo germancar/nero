@@ -10,14 +10,14 @@ namespace Nero\Core\Database;
 class DB
 {
     /**
-     * Singleton instance
+     * Singleton instance.
      *
      * @var Nero\Core\Database\DB;
      */
     private static $instance = null;
 
     /**
-     * PDO handle
+     * PDO handle.
      *
      * @var PDO
      */
@@ -25,7 +25,7 @@ class DB
 
     
     /**
-     * Result of the query
+     * Result of the query.
      *
      * @var array
      */
@@ -33,7 +33,7 @@ class DB
     
 
     /**
-     * Get the instance
+     * Get the instance.
      *
      * @return Nero\Core\Database\DB
      */
@@ -48,7 +48,7 @@ class DB
 
 
     /**
-     * Query the db and get the results
+     * Query the db and get the results.
      *
      * @param string $sql
      * @param array $arguments
@@ -71,13 +71,13 @@ class DB
                 //we have results to fetch
                 return $stmt->fetchAll(\PDO::FETCH_ASSOC);
         }
-        else
-            return false;
+
+        return false;
     }
 
 
     /**
-     * Constructor, connect to the db through PDO
+     * Constructor, connect to the db through PDO.
      *
      * @return void
      */

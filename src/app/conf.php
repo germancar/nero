@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Return the array containing all the config information.
+ * Return an array containing all the config information.
  *
  * @return assoc array
  */
@@ -27,7 +27,7 @@ return [
     'auth_key' => 'email',
     'auth_return_model' => 'User',
 
-    //Registered services
+    //Registered services, here you can add your own
     'services' => [
 	'Nero\Services\App',
 	'Nero\Services\Auth',

@@ -7,12 +7,24 @@
 	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet"/>
 	<link href="http://localhost/nero/public/css/default.css" rel="stylesheet"/>
 
-	<!-- Add this block to add head data -->
+	<!-- Add head data -->
 	{% block head %} {% endblock %}
     </head>
     <body>
+	{% block header %} {% endblock %}
+
 	{% block content %}
 	    <h1>App template</h1>
 	{% endblock %}
+
+	{% block footer %} {% endblock %}
+
+	<!-- Use JQuery by default, and add your own scripts per page if you want to -->
+	<script
+	    src="https://code.jquery.com/jquery-3.1.1.min.js"
+	    integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+	    crossorigin="anonymous"></script>
+
+	{% block scripts %}{% endblock %}
     </body>
 </html>
