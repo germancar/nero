@@ -2,6 +2,8 @@
 
 namespace Nero\App\Controllers;
 
+use Symfony\Component\HttpFoundation\Request;
+
 /**
  * Simple controller that demonstrates different responses.
  *
@@ -34,5 +36,15 @@ class IntroController extends BaseController
     public function text()
     {
         return "Welcome to Nero!";
+    }
+
+
+    //demo route segment capture 
+    public function resource($id, Request $request)
+    {
+	return json([
+	    "response" => "Request for a resource with an id $id",
+	    "url"      => $request->getPathInfo()
+	]);
     }
 }

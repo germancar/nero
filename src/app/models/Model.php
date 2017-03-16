@@ -85,9 +85,17 @@ class Model
      */
     public function __get($name)
     {
+	//check that the attribute is set
         if (!in_array($name, array_keys($this->attributes)))
             throw new \InvalidArgumentException("Trying to access nonexistant property '{$name}' on model {$this->className}.");
 
+	//if attribute transformator is defined invoke it
+	$attributeTransformatorMethod = "get" . ucfirst($name) . "Attribute";
+	if (method_exists($this, $attributeTransformatorMethod) && in_array($name, array_keys($this->attributes))){
+	    return $this->$attributeTransformatorMethod($this->attributes[$name]);
+	}
+
+	//else just return the attribute as it is
         return $this->attributes[$name];
     }
 
@@ -147,7 +155,7 @@ class Model
 
     
     /**
-     * Foreach dynamic method.
+     * Dynamic methods.
      *
      * @param string $name
      * @param string $arguments
@@ -155,11 +163,30 @@ class Model
      */
     public function __call($name, $arguments)
     {
+	//implement the foreach dynamic method on has many result
 	if (stringStartsWith("foreach", $name)){
 	    $relationName = strtolower(substr($name, 7));
 	    $result = $this->$relationName();
 	    array_walk($result, $arguments[0]);
 	    return true;
+	}
+
+	//map the relation
+	if (stringStartsWith("map", $name)){
+	    $relationName = strtolower(substr($name, 3));
+	    $result = $this->$relationName();
+	    return array_map($arguments[0], $result);
+	}
+
+	//reduce the relation
+	if (stringStartsWith("reduce", $name)){
+	    $relationName = strtolower(substr($name, 6));
+	    $result = $this->$relationName();
+
+	    if (isset($arguments[1]))
+		return array_reduce($result, $arguments[0], $arguments[1]);
+	    else
+		return array_reduce($result, $arguments[0]);
 	}
 
         throw new \Exception("Calling nonexistant method '{$name}'.");	
