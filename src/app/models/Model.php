@@ -398,7 +398,7 @@ class Model
     public function hasMany($model, $foreignKey = "", $tableName = "")
     {
 	//collect the info needed for the query
-        $foreignKey = $this->hasForeignKey($foreignKey);
+	$foreignKey = ($foreignKey == "") ? $this->createDefaultHasForeignKey() : $foreignKey;
 	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
 
 	//query the db
@@ -421,7 +421,8 @@ class Model
     {
 	//collect the info needed for the query
 	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
-        $foreignKey = $this->belongsForeignKey($foreignKey, $tableName);
+        $foreignKey = ($foreignKey == "") ? $this->createDefaultBelongsForeignKey($tableName) : $foreignKey;
+	$model = "Nero\\App\Models\\" . $model;
 	$primaryKey = (new $model)->primaryKey;
 
 	//query the db 
@@ -535,38 +536,25 @@ class Model
 
 
     /**
-     * Create a foreign key to be used in has many relationships queries.
+     * Default hasMany foreign key.
      *
-     * @param string $foreignKey 
      * @return string
      */
-    private function hasForeignKey($foreignKey)  
-    {       
-	if ($foreignKey == ""){
-	    //default foreign key generation, "model"_id
-            return strtolower($this->className) . "_id";
-        }
-
-	//return the user supplied explicit foreign key, no need for processing
-        return $foreignKey;
+    private function createDefaultHasForeignKey()
+    {
+	//default foreign key generation, "model"_id
+        return strtolower($this->className) . "_id";	
     }
 
 
     /**
-     * Create a foreign key to be used in belongs to relationship queries.
+     * Default belongsTo foreign key
      *
-     * @param string $foreignKey 
-     * @param string $tableName 
-     * @return string 
+     * @return string
      */
-    private function belongsForeignKey($foreignKey, $tableName)
+    private function createDefaultBelongsForeignKey($tableName)
     {
-        if ($foreignKey == ""){
-	    //default foreign key generation, ("tableName" - 's')_id
-            return rtrim(strtolower($tableName), 's') . "_id";
-	} 
-
-	//return the user supplied explicit foreign key, no need for processing
-        return $foreignKey;
+	//default foreign key generation, ("tableName" - 's')_id
+        return rtrim(strtolower($tableName), 's') . "_id";	
     }
 }
