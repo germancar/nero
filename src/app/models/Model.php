@@ -376,7 +376,7 @@ class Model
     public function hasOne($model, $foreignKey = "", $tableName = "")
     {
 	//collect the info needed for the query
-        $foreignKey = $this->hasForeignKey($foreignKey);
+        $foreignKey = ($foreignKey == "") ? $this->createDefaultHasForeignKey() : $foreignKey;
 	$tableName = ($tableName == "") ? $this->extractDefaultTableName($model) : $tableName;
 
 	//query the db
